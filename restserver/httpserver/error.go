@@ -12,7 +12,7 @@ type HTTPStatusError interface {
 	HTTPStatus() int
 }
 
-// HTTPStatus err对应的财务码。
+// HTTPStatus err对应的错误码。
 // 如果err为nil，返回200；
 // 如果err实现了HTTPStatusError接口，返回HTTPStatus()的结果；
 // 否则返回500。

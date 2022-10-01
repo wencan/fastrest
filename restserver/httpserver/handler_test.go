@@ -1,12 +1,15 @@
 package httpserver
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/wencan/fastrest/resterror"
 	"github.com/wencan/fastrest/restutils"
+	"google.golang.org/grpc/codes"
 )
 
 func Test_GetHandler(t *testing.T) {
@@ -50,6 +53,20 @@ func Test_GetHandler(t *testing.T) {
 			want: want{
 				statusCode:   http.StatusOK,
 				responseBody: []byte(`{"echo":"hello"}`),
+			},
+		},
+		{
+			name: "test_get_400",
+			args: args{
+				config: &DefaultHandlerFactoryConfig,
+				handler: func(r *http.Request) (response interface{}, err error) {
+					return nil, resterror.ErrorWithStatus(errors.New("test"), http.StatusBadRequest, codes.InvalidArgument)
+				},
+				url: "/echo?greeting=hello",
+			},
+			want: want{
+				statusCode:   http.StatusBadRequest,
+				responseBody: []byte(``),
 			},
 		},
 	}
