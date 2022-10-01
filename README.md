@@ -1,6 +1,6 @@
 # fastrest
 
-[![GoDoc](https://pkg.go.dev/github.com/wencan/fastrest)][API]
+[![GoDoc](https://pkg.go.dev/badge/github.com/wencan/fastrest)][API]  
 
 
 Go语言RESTful服务通用组件  
