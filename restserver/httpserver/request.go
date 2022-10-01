@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/wencan/fastrest/restcodecs/restmime"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
 	"github.com/wencan/fastrest/restutils"
 )
@@ -20,8 +21,8 @@ func ReadRequest(ctx context.Context, dest interface{}, r *http.Request) error {
 		}
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
 		defer r.Body.Close()
-		accept := r.Header.Get("Accept")
-		err := restutils.UnmarshalContent(dest, accept, r.Body)
+		accept := r.Header.Get("Content-Type")
+		err := restmime.Unmarshal(dest, accept, r.Body)
 		if err != nil {
 			return err
 		}
@@ -32,7 +33,8 @@ func ReadRequest(ctx context.Context, dest interface{}, r *http.Request) error {
 	return nil
 }
 
-// ReadValidateRequest 解析请求到对象，会用。
+// ReadValidateRequest 解析请求到对象。
+// 会用github.com/go-playground/validator校验对象字段值。
 func ReadValidateRequest(ctx context.Context, dest interface{}, r *http.Request) error {
 	err := ReadRequest(ctx, dest, r)
 	if err != nil {

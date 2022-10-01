@@ -13,9 +13,6 @@ type NewStdHandlerFunc func(handler HandlerFunc) http.HandlerFunc
 
 // HandlerFactoryConfig Handler工厂配置。配置全部可选。
 type HandlerFactoryConfig struct {
-	// // EnableValidator 启用github.com/go-playground/validator验证。
-	// EnableValidator bool
-
 	// RequestInterceptor 请求拦截器。
 	RequestInterceptor func(r *http.Request) (overwriteRequest *http.Request, err error)
 
