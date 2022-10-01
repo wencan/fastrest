@@ -10,7 +10,7 @@ import (
 )
 
 func ExampleSimpleServer() {
-	handler := NewHandler(func(r *http.Request) (response interface{}, err error) {
+	var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
 			Greeting string `schema:"greeting"`
 		}{}
