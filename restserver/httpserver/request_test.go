@@ -66,8 +66,8 @@ func TestReadRequest(t *testing.T) {
 			name: "patch_form",
 			args: args{
 				dest: &struct {
-					Greeting string `json:"greeting"`
-					Name     string `json:"name"`
+					Greeting string `schema:"greeting"`
+					Name     string `schema:"name"`
 				}{},
 				r: func() *http.Request {
 					r := httptest.NewRequest(http.MethodPatch, "/test", bytes.NewBufferString(`greeting=hi&name=Tom`))
@@ -76,8 +76,8 @@ func TestReadRequest(t *testing.T) {
 				}(),
 			},
 			want: &struct {
-				Greeting string `json:"greeting"`
-				Name     string `json:"name"`
+				Greeting string `schema:"greeting"`
+				Name     string `schema:"name"`
 			}{
 				Greeting: "hi",
 				Name:     "Tom",
