@@ -2,14 +2,13 @@ package httpserver
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 )
 
-func ExampleSimpleServer() {
+func ExampleNewHandler() {
 	var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
 			Greeting string `schema:"greeting"`
@@ -51,14 +50,18 @@ func ExampleSimpleServer() {
 	// Output: {"echo":"hello"}
 }
 
-func ExampleInterceptorServer() {
+func ExampleNewHandlerFactory() {
 	factory := NewHandlerFactory(&HandlerFactoryConfig{
 		RequestInterceptor: func(r *http.Request) (overwriteRequest *http.Request, err error) {
 			fmt.Println(r.RequestURI)
 			return r, nil
 		},
 		ResponseInterceptor: func(ctx context.Context, response interface{}, err error) (overwriteResponse interface{}, overwriteErr error) {
-			return nil, errors.New("test")
+			return struct {
+				Data interface{} `json:"data"`
+			}{
+				Data: response,
+			}, nil
 		},
 	})
 	handler := factory(func(r *http.Request) (response interface{}, err error) {
@@ -101,5 +104,5 @@ func ExampleInterceptorServer() {
 	fmt.Println(string(data))
 
 	// Output: /echo?greeting=hello
-	// status code: 500
+	// {"data":{"echo":"hello"}}
 }
