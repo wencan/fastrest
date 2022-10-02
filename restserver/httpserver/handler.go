@@ -1,45 +1,32 @@
 package httpserver
 
 import (
-	"context"
 	"net/http"
 )
 
 // HandlerFunc 需要开发者实现的服务处理函数的签名。HandlerFunc将会作为NewHandlerFunc的入参。
 type HandlerFunc func(r *http.Request) (response interface{}, err error)
 
-// NewStdHandlerFunc 创建http.HandlerFunc的函数的签名。
-type NewStdHandlerFunc func(handler HandlerFunc) http.HandlerFunc
-
-// HandlerFactoryConfig Handler工厂配置。配置全部可选。
-type HandlerFactoryConfig struct {
-	// RequestInterceptor 请求拦截器。
-	RequestInterceptor func(r *http.Request) (overwriteRequest *http.Request, err error)
-
-	// ResponseInterceptor 响应拦截器。
-	ResponseInterceptor func(ctx context.Context, response interface{}, err error) (overwriteResponse interface{}, overwriteErr error)
+// HandlerConfig Handler配置。配置全部可选。
+type HandlerConfig struct {
+	// Middleware 中间件。如果需要多个中间件，可以用ChainHandlerMiddlewares创建的中间件链。
+	Middleware HandlerMiddleware
 }
 
-// DefaultHandlerFactoryConfig 默认Handler工厂配置。可覆盖。
-var DefaultHandlerFactoryConfig HandlerFactoryConfig
+// DefaultHandlerConfig 默认Handler配置。可覆盖。
+var DefaultHandlerConfig HandlerConfig
 
-func newHandler(config *HandlerFactoryConfig, handler HandlerFunc) http.HandlerFunc {
+// NewHandler 基于配置，创建一个http.Handler。
+func (config HandlerConfig) NewHandler(handler HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var response interface{}
 		var err error
 
-		if config.RequestInterceptor != nil {
-			r, err = config.RequestInterceptor(r)
+		if config.Middleware != nil {
+			handler = config.Middleware(handler)
 		}
-
-		if err == nil {
-			response, err = handler(r)
-		}
-
-		if config.ResponseInterceptor != nil {
-			response, err = config.ResponseInterceptor(ctx, response, err)
-		}
+		response, err = handler(r)
 
 		statusCode := HTTPStatus(err)
 		w.WriteHeader(statusCode)
@@ -51,34 +38,7 @@ func newHandler(config *HandlerFactoryConfig, handler HandlerFunc) http.HandlerF
 	}
 }
 
-// NewHandlerFactory 创建一个创建http.HandlerFunc的工厂。
-// 如果config为nil，使用DefaultHandlerFactoryConfig。
-func NewHandlerFactory(config *HandlerFactoryConfig) NewStdHandlerFunc {
-	if config == nil {
-		config = &DefaultHandlerFactoryConfig
-	}
-
-	return func(handler HandlerFunc) http.HandlerFunc {
-		return newHandler(config, handler)
-	}
-}
-
-// NewHandler 使用DefaultHandlerFactoryConfig创建一个Handler。
+// NewHandler 使用DefaultHandlerConfig创建一个http.Handler。
 func NewHandler(handler HandlerFunc) http.HandlerFunc {
-	return newHandler(&DefaultHandlerFactoryConfig, handler)
-}
-
-func T(config *HandlerFactoryConfig, handler HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		var response interface{}
-		var err error
-
-		statusCode := HTTPStatus(err)
-		if response != nil {
-			accept := r.Header.Get("Accept")
-			WriteResponse(ctx, accept, response, w)
-		}
-		w.WriteHeader(statusCode)
-	}
+	return DefaultHandlerConfig.NewHandler(handler)
 }

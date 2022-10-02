@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -50,21 +49,24 @@ func ExampleNewHandler() {
 	// Output: {"echo":"hello"}
 }
 
-func ExampleNewHandlerFactory() {
-	factory := NewHandlerFactory(&HandlerFactoryConfig{
-		RequestInterceptor: func(r *http.Request) (overwriteRequest *http.Request, err error) {
-			fmt.Println(r.RequestURI)
-			return r, nil
+func ExampleHandlerConfig() {
+	config := &HandlerConfig{
+		Middleware: func(next HandlerFunc) HandlerFunc {
+			return func(r *http.Request) (response interface{}, err error) {
+				fmt.Println(r.RequestURI)
+				response, err = next(r)
+				if err != nil {
+					return nil, err
+				}
+				return struct {
+					Data interface{} `json:"data"`
+				}{
+					Data: response,
+				}, nil
+			}
 		},
-		ResponseInterceptor: func(ctx context.Context, response interface{}, err error) (overwriteResponse interface{}, overwriteErr error) {
-			return struct {
-				Data interface{} `json:"data"`
-			}{
-				Data: response,
-			}, nil
-		},
-	})
-	handler := factory(func(r *http.Request) (response interface{}, err error) {
+	}
+	handler := config.NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
 			Greeting string `schema:"greeting"`
 		}{}

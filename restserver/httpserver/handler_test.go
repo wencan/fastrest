@@ -21,7 +21,7 @@ func Test_GetHandler(t *testing.T) {
 	}
 
 	type args struct {
-		config  *HandlerFactoryConfig
+		config  *HandlerConfig
 		handler HandlerFunc
 		url     string
 	}
@@ -37,7 +37,7 @@ func Test_GetHandler(t *testing.T) {
 		{
 			name: "test_get",
 			args: args{
-				config: &DefaultHandlerFactoryConfig,
+				config: &DefaultHandlerConfig,
 				handler: func(r *http.Request) (response interface{}, err error) {
 					var req Request
 					err = ReadRequest(r.Context(), &req, r)
@@ -58,7 +58,7 @@ func Test_GetHandler(t *testing.T) {
 		{
 			name: "test_get_400",
 			args: args{
-				config: &DefaultHandlerFactoryConfig,
+				config: &DefaultHandlerConfig,
 				handler: func(r *http.Request) (response interface{}, err error) {
 					return nil, resterror.ErrorWithStatus(errors.New("test"), http.StatusBadRequest, codes.InvalidArgument)
 				},
@@ -72,7 +72,7 @@ func Test_GetHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hander := newHandler(tt.args.config, tt.args.handler)
+			hander := tt.args.config.NewHandler(tt.args.handler)
 			s := httptest.NewServer(hander)
 			defer s.Close()
 
