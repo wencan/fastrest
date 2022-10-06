@@ -44,9 +44,9 @@ func TestRecoveryMiddleware(t *testing.T) {
 		handler HandlerFunc
 	}
 	tests := []struct {
-		name      string
-		args      args
-		wantError string
+		name          string
+		args          args
+		wantErrorHead string
 	}{
 		{
 			name: "panic",
@@ -55,7 +55,7 @@ func TestRecoveryMiddleware(t *testing.T) {
 					panic("test")
 				},
 			},
-			wantError: "painc: test",
+			wantErrorHead: "painc: test",
 		},
 	}
 	for _, tt := range tests {
@@ -66,8 +66,8 @@ func TestRecoveryMiddleware(t *testing.T) {
 			if err != nil {
 				gotError = err.Error()
 			}
-			if gotError != tt.wantError {
-				t.Errorf("want error: [%s], got error: [%s]", tt.wantError, gotError)
+			if strings.Index(gotError, tt.wantErrorHead) != 0 {
+				t.Errorf("want error: [%s], got error: [%s]", tt.wantErrorHead, gotError)
 			}
 		})
 	}

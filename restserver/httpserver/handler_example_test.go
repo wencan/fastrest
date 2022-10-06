@@ -51,7 +51,7 @@ func ExampleNewHandler() {
 
 func ExampleHandlerConfig() {
 	config := &HandlerConfig{
-		Middleware: func(next HandlerFunc) HandlerFunc {
+		Middleware: ChainHandlerMiddlewares(func(next HandlerFunc) HandlerFunc {
 			return func(r *http.Request) (response interface{}, err error) {
 				fmt.Println(r.RequestURI)
 				response, err = next(r)
@@ -64,7 +64,7 @@ func ExampleHandlerConfig() {
 					Data: response,
 				}, nil
 			}
-		},
+		}, RecoveryMiddleware),
 	}
 	handler := config.NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
