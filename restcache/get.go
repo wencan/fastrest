@@ -27,7 +27,7 @@ type Caching struct {
 	// Storage 存储接口。
 	Storage Storage
 
-	// Query 如果没从缓存里找到，调用Query查询。
+	// Query 如果没从Storage里找到，调用Query查询。
 	Query QueryFunc
 
 	// TTLRange 缓存生存时间区间。每次随机取一个区间内的值。

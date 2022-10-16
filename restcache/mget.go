@@ -35,7 +35,7 @@ type MCaching struct {
 	// MStorage 支持批量操作的缓存存储接口。
 	MStorage MStorage
 
-	// MQuery 如果没从缓存里找到，调用Query批量查询。
+	// MQuery 没从MStorage里找到的，调用MQuery批量查询。
 	MQuery MQueryFunc
 
 	// TTLRange 缓存生存时间区间。每次随机取一个区间内的值。
