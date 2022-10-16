@@ -41,8 +41,8 @@ type Caching struct {
 	SentinelTTL time.Duration
 }
 
-// Get 查询。dest为对象地址，key为缓存key，args为查询函数参数。
-// dest的值很可能是共享的，内容数据不可修改。
+// Get 查询。destPtr为结果对象指针，key为缓存key，args为查询函数参数。
+// destPtr的值是共享的，内容数据不可修改。
 func (caching *Caching) Get(ctx context.Context, destPtr interface{}, key string, args interface{}) (found bool, err error) {
 	// 先查缓存
 	found, err = caching.Storage.Get(ctx, key, destPtr)

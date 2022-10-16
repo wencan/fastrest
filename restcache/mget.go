@@ -50,8 +50,9 @@ type MCaching struct {
 }
 
 // MGet 批量查询。
+// destSlicePtr是结果切片指针，keys是缓存key，argsSlice是查询函数的参数序列。
 // 如果全部没找到，或者部分没找到，返回没找到部分的下标，不返回错误。
-// dest的值很可能是共享的，内容数据不可修改。
+// destSlicePtr指向的切片的元素数据是共享的，内容不可修改。
 func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, keys []string, argsSlice interface{}) (missIndexes []int, err error) {
 	// 第一步，先查缓存
 	cacheMissIndexes, err := mcaching.MStorage.MGet(ctx, keys, destSlicePtr)
