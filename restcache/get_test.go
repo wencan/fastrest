@@ -252,7 +252,7 @@ func TestCaching_Get(t *testing.T) {
 	}{
 		{
 			name:       "query_string", // 没命中缓存，查询到
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: notfoundStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {
@@ -276,7 +276,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_cached_string", // 命中缓存
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: func() Storage {
 					mockInternalStore.Store("hit_cache_string", "echo: hit_cache") // 先存缓存
@@ -298,7 +298,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_struct", // 没命中缓存，查询到
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: notfoundStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {
@@ -322,7 +322,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_cached_struct", // 命中缓存
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: func() Storage {
 					mockInternalStore.Store("hit_cache_struct", Response{Echo: "echo: hit_cache"}) // 先存缓存
@@ -344,7 +344,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_struct_ptr", // 没命中缓存，查询到
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: notfoundStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {
@@ -368,7 +368,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_cached_struct_ptr", // 命中缓存
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: func() Storage {
 					mockInternalStore.Store("hit_cache_struct_ptr", &Response{Echo: "echo: hit_cache_ptr"}) // 先存缓存
@@ -390,7 +390,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_notfound", // 查不到
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: mockStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {
@@ -410,7 +410,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "query_error", // 查询错误
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: mockStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {
@@ -430,7 +430,7 @@ func TestCaching_Get(t *testing.T) {
 		},
 		{
 			name:       "cache_error", // 缓存错误
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				Storage: wrongStorage,
 				Query: func(ctx context.Context, destPtr, args interface{}) (found bool, err error) {

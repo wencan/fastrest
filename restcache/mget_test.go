@@ -286,7 +286,7 @@ func TestMCaching_MGet(t *testing.T) {
 	}{
 		{
 			name:       "one_cached_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_string_1", "echo: 1")
@@ -307,7 +307,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_cached_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_string_1", "echo: 1")
@@ -333,7 +333,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "one_queried_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: notfoundStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -358,7 +358,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_queried_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: notfoundStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -383,7 +383,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_cached_struct",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_struct_1", Response{Echo: "echo: 1"})
@@ -406,7 +406,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_queried_struct",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: mockStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -431,7 +431,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_cached_struct_ptr",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_struct_ptr_1", &Response{Echo: "echo: 1"})
@@ -454,7 +454,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_queried_struct_ptr",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: notfoundStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -479,7 +479,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "one_cached_string-and-one_queried_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_string_10", "echo: 10")
@@ -507,7 +507,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_cached_string-and-multi_queried_string",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_string_10", "echo: 10")
@@ -537,7 +537,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "multi_cached_string-and-multi_queried_string-2",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: func() MStorage {
 					mockInternalStore.Store("cached_string_20", "echo: 20")
@@ -567,7 +567,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "partial_notfound",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: mockStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -597,7 +597,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "partial_notfound-2",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: mockStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -627,7 +627,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "all_notfound",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: notfoundStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
@@ -657,7 +657,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "cache_error",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage:    WrongStorage,
 				MQuery:      nil,
@@ -676,7 +676,7 @@ func TestMCaching_MGet(t *testing.T) {
 		},
 		{
 			name:       "query_error",
-			goroutines: 1000,
+			goroutines: 10000,
 			fields: fields{
 				MStorage: mockStorage,
 				MQuery: func(ctx context.Context, destSlicePtr, argsSlice interface{}) (missIndexes []int, err error) {
