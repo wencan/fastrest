@@ -131,7 +131,6 @@ func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, ke
 			if cacheDestSlice.Len() <= cacheCount { // 缓存返回数据有问题
 				return nil, errors.New("not enough cache results")
 			}
-			// fmt.Println(key, cacheDestSlice.Index(cacheCount).Interface())
 			destElemValueMap[key] = cacheDestSlice.Index(cacheCount)
 			m[key] = cacheDestSlice.Index(cacheCount).Interface()
 			cacheCount++
@@ -143,7 +142,6 @@ func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, ke
 				if queriedDestValue.Len() <= queriedDestCount { // query函数返回数据有问题
 					return nil, errors.New("not enough query results")
 				}
-				// fmt.Println(key, queriedDestValue.Index(queriedDestCount).Interface())
 				destElemValueMap[key] = queriedDestValue.Index(queriedDestCount)
 				m[key] = queriedDestValue.Index(queriedDestCount).Interface()
 				queriedDestCount++
