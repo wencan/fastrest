@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/url"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/wencan/fastrest/restcodecs/restjson"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
 )
@@ -21,6 +22,7 @@ var DefaultUnmarshaler UnmarshalerFunc
 func init() {
 	RegisterUnmarshaler("application/json", jsonUnmarshaler)
 	RegisterUnmarshaler("application/x-www-form-urlencoded", formUnmarshaler)
+	RegisterUnmarshaler("application/x-protobuf", protobufUnmarshaler)
 }
 
 // RegisterUnmarshaler 注册Mime数据反序列化函数。
@@ -48,6 +50,22 @@ func formUnmarshaler(dest interface{}, reader io.Reader) error {
 		return err
 	}
 	err = restvalues.Decoder.Decode(dest, values)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func protobufUnmarshaler(dest interface{}, reader io.Reader) error {
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+	message, ok := dest.(proto.Message)
+	if !ok {
+		return errors.New("not protobuf message")
+	}
+	err = proto.Unmarshal(data, message)
 	if err != nil {
 		return err
 	}

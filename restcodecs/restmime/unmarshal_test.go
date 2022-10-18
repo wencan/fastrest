@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"io"
 	"testing"
+
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestUnmarshal(t *testing.T) {
@@ -54,6 +57,21 @@ func TestUnmarshal(t *testing.T) {
 				Greeting: "hi",
 				Name:     "Tom",
 			},
+			wantErr: false,
+		},
+		{
+			name: "protobuf",
+			args: args{
+				dest:        &pb.HelloRequest{},
+				contentType: "application/x-protobuf",
+				reader: func() io.Reader {
+					data, _ := proto.Marshal(&pb.HelloRequest{
+						Name: "Hi",
+					})
+					return bytes.NewBuffer(data)
+				}(),
+			},
+			want:    &pb.HelloRequest{Name: "Hi"},
 			wantErr: false,
 		},
 	}

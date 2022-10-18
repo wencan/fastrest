@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/wencan/fastrest/restutils"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestMarshal(t *testing.T) {
@@ -46,6 +48,22 @@ func TestMarshal(t *testing.T) {
 				contentType: "application/x-www-form-urlencoded",
 			},
 			want:    []byte(`greeting=hi&name=Tom`),
+			wantErr: false,
+		},
+		{
+			name: "protobuf",
+			args: args{
+				v: &pb.HelloRequest{
+					Name: "Hi",
+				},
+				contentType: "application/x-protobuf",
+			},
+			want: func() []byte {
+				data, _ := proto.Marshal(&pb.HelloRequest{
+					Name: "Hi",
+				})
+				return data
+			}(),
 			wantErr: false,
 		},
 	}

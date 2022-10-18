@@ -17,8 +17,9 @@ var RequestErrorWrapper = func(ctx context.Context, err error) error {
 	return resterror.ErrorWithStatus(err, http.StatusBadRequest, codes.InvalidArgument)
 }
 
-// ReadRequest 解析请求到对象。支持GET的请求参数、POST/PUT/PATCH的Content-Type为application/json和application/x-www-form-urlencoded的请求实体。
-// 解析GET请求参数，需要dest对象字段带schema标签。
+// ReadRequest 解析请求到对象。
+// 支持GET的查询参数、POST/PUT/PATCH的Content-Type为application/json、application/x-www-form-urlencoded、application/x-protobuf的请求实体。
+// 解析GET查询参数和application/x-www-form-urlencoded实体，需要dest对象字段带schema标签。
 func ReadRequest(ctx context.Context, dest interface{}, r *http.Request) error {
 	switch r.Method {
 	case http.MethodGet:

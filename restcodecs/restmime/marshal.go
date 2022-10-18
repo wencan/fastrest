@@ -7,6 +7,7 @@ import (
 
 	"github.com/wencan/fastrest/restcodecs/restjson"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
+	"google.golang.org/protobuf/proto"
 )
 
 // MarshalerFunc mime序列化函数签名。
@@ -21,6 +22,7 @@ var DefaultMarshaler MarshalerFunc
 func init() {
 	RegisterMarshaler("application/json", jsonMarshaler)
 	RegisterMarshaler("application/x-www-form-urlencoded", formMarshaler)
+	RegisterMarshaler("application/x-protobuf", protobufMarshler)
 }
 
 // RegisterMarshaler 注册mime数据序列化函数。
@@ -44,6 +46,22 @@ func formMarshaler(v interface{}, writer io.Writer) error {
 		return err
 	}
 	_, err = writer.Write([]byte(values.Encode()))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func protobufMarshler(v interface{}, writer io.Writer) error {
+	message, ok := v.(proto.Message)
+	if !ok {
+		return errors.New("not protobuf message")
+	}
+	data, err := proto.Marshal(message)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(data)
 	if err != nil {
 		return err
 	}
