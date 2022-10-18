@@ -15,9 +15,9 @@ type MarshalerFunc func(v interface{}, writer io.Writer) error
 
 var marshalerMap = map[string]MarshalerFunc{}
 
-// DefaultMarshaler 默认的（保底的）序列化函数。
-// 默认为nil，无保底，
-var DefaultMarshaler MarshalerFunc
+// DefaultMarshaler 默认的（保底的）序列化函数。可覆盖。
+// 默认保底序列化为json，
+var DefaultMarshaler MarshalerFunc = jsonMarshaler
 
 func init() {
 	RegisterMarshaler("application/json", jsonMarshaler)
