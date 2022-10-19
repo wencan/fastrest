@@ -20,9 +20,9 @@ var unmarshalerMap = map[string]UnmarshalerFunc{}
 var DefaultUnmarshaler UnmarshalerFunc
 
 func init() {
-	RegisterUnmarshaler("application/json", jsonUnmarshaler)
-	RegisterUnmarshaler("application/x-www-form-urlencoded", formUnmarshaler)
-	RegisterUnmarshaler("application/x-protobuf", protobufUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeJson), jsonUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeForm), formUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeProtobuf), protobufUnmarshaler)
 }
 
 // RegisterUnmarshaler 注册Mime数据反序列化函数。

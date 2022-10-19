@@ -20,9 +20,9 @@ var marshalerMap = map[string]MarshalerFunc{}
 var DefaultMarshaler MarshalerFunc = jsonMarshaler
 
 func init() {
-	RegisterMarshaler("application/json", jsonMarshaler)
-	RegisterMarshaler("application/x-www-form-urlencoded", formMarshaler)
-	RegisterMarshaler("application/x-protobuf", protobufMarshler)
+	RegisterMarshaler(string(MimeTypeJson), jsonMarshaler)
+	RegisterMarshaler(string(MimeTypeForm), formMarshaler)
+	RegisterMarshaler(string(MimeTypeProtobuf), protobufMarshler)
 }
 
 // RegisterMarshaler 注册mime数据序列化函数。
