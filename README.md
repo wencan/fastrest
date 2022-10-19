@@ -32,10 +32,10 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
 ```go
 var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
     req := struct {
-        Greeting string `schema:"greeting"`
+        Greeting string `schema:"greeting" validate:"required"`
     }{}
-    // parse query
-    err = ReadRequest(r.Context(), &req, r)
+    // parse and validate query
+    err = ReadValidateRequest(r.Context(), &req, r)
     if err != nil {
         return nil, err
     }

@@ -10,9 +10,10 @@ import (
 func ExampleNewHandler() {
 	var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
-			Greeting string `schema:"greeting"`
+			Greeting string `schema:"greeting" validate:"required"`
 		}{}
-		err = ReadRequest(r.Context(), &req, r)
+		// 解析并验证请求
+		err = ReadValidateRequest(r.Context(), &req, r)
 		if err != nil {
 			return nil, err
 		}

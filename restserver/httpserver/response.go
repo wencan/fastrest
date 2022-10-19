@@ -8,7 +8,9 @@ import (
 )
 
 // WriteResponse 将响应写出。
-// 暂时只会输出为json。
-func WriteResponse(ctx context.Context, accept string, response interface{}, w http.ResponseWriter) error {
-	return restmime.Marshal(response, accept, w)
+func WriteResponse(ctx context.Context, contentType string, response interface{}, w http.ResponseWriter) error {
+	if contentType != "" {
+		w.Header().Set("Content-Type", contentType)
+	}
+	return restmime.Marshal(response, contentType, w)
 }
