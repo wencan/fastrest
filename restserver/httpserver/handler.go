@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -12,10 +13,9 @@ type HandlerConfig struct {
 	// Middleware 中间件。如果需要多个中间件，可以用ChainHandlerMiddlewares创建的中间件链。
 	Middleware HandlerMiddleware
 
-	// DefaultResponseContentType 默认的响应输出Content-Type。
-	// 如果请求没有通过Header Accept指定。
-	// 建议设为：application/json。
-	DefaultResponseContentType string
+	// DefaultAccept 保底的Accept。
+	// 如果请求没有通过Header Accept指定，则使用该值。
+	DefaultAccept string
 }
 
 // DefaultHandlerConfig 默认Handler配置。可覆盖。
@@ -37,11 +37,14 @@ func (config HandlerConfig) NewHandler(handler HandlerFunc) http.HandlerFunc {
 		w.WriteHeader(statusCode)
 
 		if response != nil {
-			contentType := r.Header.Get("Accept")
-			if contentType == "" {
-				contentType = config.DefaultResponseContentType
+			accept := r.Header.Get("Accept")
+			if accept == "" {
+				accept = config.DefaultAccept
 			}
-			WriteResponse(ctx, contentType, response, w)
+			err = WriteResponse(ctx, accept, response, w)
+			if err != nil {
+				log.Printf("failed to write response, error: %s\n", err)
+			}
 		}
 	}
 }

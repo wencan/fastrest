@@ -29,8 +29,8 @@ func ReadRequest(ctx context.Context, dest interface{}, r *http.Request) error {
 		}
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
 		defer r.Body.Close()
-		accept := r.Header.Get("Content-Type")
-		err := restmime.Unmarshal(dest, accept, r.Body)
+		contentType := r.Header.Get("Content-Type")
+		err := restmime.Unmarshal(dest, contentType, r.Body)
 		if err != nil {
 			return RequestErrorWrapper(ctx, err)
 		}

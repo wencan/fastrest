@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/wencan/fastrest/restcodecs/restmime"
 )
 
 func ExampleNewHandler() {
@@ -66,6 +68,7 @@ func ExampleHandlerConfig() {
 				}, nil
 			}
 		}, RecoveryMiddleware),
+		DefaultAccept: restmime.MimeTypeJson,
 	}
 	handler := config.NewHandler(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
