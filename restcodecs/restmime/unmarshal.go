@@ -2,22 +2,20 @@ package restmime
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"mime"
 	"net/url"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/wencan/fastrest/restcodecs/restjson"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
+	"google.golang.org/protobuf/proto"
 )
 
 // UnmarshalerFunc mime反序列化函数签名。
 type UnmarshalerFunc func(dest interface{}, reader io.Reader) error
 
 var unmarshalerMap = map[string]UnmarshalerFunc{}
-
-// DefaultUnmarshaler 默认的（保底的）反序列化函数。
-// 默认为nil，无保底，Unmarshal遇到无法识别的mime，将会报错。
-var DefaultUnmarshaler UnmarshalerFunc
 
 func init() {
 	RegisterUnmarshaler(string(MimeTypeJson), jsonUnmarshaler)
@@ -74,13 +72,13 @@ func protobufUnmarshaler(dest interface{}, reader io.Reader) error {
 
 // Unmarshal 反序列化mime数据。
 func Unmarshal(dest interface{}, contentType string, reader io.Reader) error {
-	name := ContentTypeName(contentType)
+	name, _, _ := mime.ParseMediaType(contentType)
+	if name == "" {
+		return fmt.Errorf("wrong content type: [%s]", contentType)
+	}
 	unmarshaler := unmarshalerMap[name]
 	if unmarshaler == nil {
-		unmarshaler = DefaultUnmarshaler
-	}
-	if unmarshaler == nil {
-		return errors.New("invalid Content-Type: " + contentType)
+		return fmt.Errorf("invalid content type: [%s]", contentType)
 	}
 
 	return unmarshaler(dest, reader)

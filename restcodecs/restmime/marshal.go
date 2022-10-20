@@ -2,8 +2,11 @@ package restmime
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"mime"
 	"net/url"
+	"strings"
 
 	"github.com/wencan/fastrest/restcodecs/restjson"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
@@ -13,11 +16,13 @@ import (
 // MarshalerFunc mime序列化函数签名。
 type MarshalerFunc func(v interface{}, writer io.Writer) error
 
-var marshalerMap = map[string]MarshalerFunc{}
+type registeredMarshaler struct {
+	ContentType  string
+	DiscreteType string
+	Marshaler    MarshalerFunc
+}
 
-// DefaultMarshaler 默认的（保底的）序列化函数。可覆盖。
-// 默认保底序列化为json，
-var DefaultMarshaler MarshalerFunc = jsonMarshaler
+var registeredMarshalers = make([]*registeredMarshaler, 0)
 
 func init() {
 	RegisterMarshaler(string(MimeTypeJson), jsonMarshaler)
@@ -27,7 +32,11 @@ func init() {
 
 // RegisterMarshaler 注册mime数据序列化函数。
 func RegisterMarshaler(name string, marshaler MarshalerFunc) {
-	marshalerMap[name] = marshaler
+	registeredMarshalers = append(registeredMarshalers, &registeredMarshaler{
+		ContentType:  name,
+		DiscreteType: strings.Split(name, "/")[0],
+		Marshaler:    marshaler,
+	})
 }
 
 func jsonMarshaler(v interface{}, writer io.Writer) error {
@@ -70,14 +79,49 @@ func protobufMarshler(v interface{}, writer io.Writer) error {
 
 // Marshal 序列化mime数据。
 func Marshal(v interface{}, contentType string, writer io.Writer) error {
-	name := ContentTypeName(contentType)
-	marshaler := marshalerMap[name]
-	if marshaler == nil {
-		marshaler = DefaultMarshaler
+	name, _, _ := mime.ParseMediaType(contentType)
+	if name == "" {
+		return fmt.Errorf("wrong content type: [%s]", contentType)
+	}
+
+	var marshaler MarshalerFunc
+	for _, registeredMarshaler := range registeredMarshalers {
+		if registeredMarshaler.ContentType == name {
+			marshaler = registeredMarshaler.Marshaler
+			break
+		}
 	}
 	if marshaler == nil {
-		return errors.New("invalid Content-Type: " + contentType)
+		return errors.New("invalid content type: [%s]" + contentType)
 	}
 
 	return marshaler(v, writer)
+}
+
+// AcceptableMarshalContentType 根据accept要求，在支持的mime type列表中寻找匹配的content type。
+// accept举例：text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8。
+// 目前未支持Accept中的参数部分。
+func AcceptableMarshalContentType(accept string) string {
+	acceptParts := strings.Split(accept, ",")
+	for _, acceptPart := range acceptParts {
+		acceptPart, _, _ := mime.ParseMediaType(acceptPart)
+		if acceptPart == "*/*" {
+			return registeredMarshalers[0].ContentType
+		} else if strings.Contains(acceptPart, "/*") {
+			discreteType := strings.Split(acceptPart, "/")[0]
+			for _, registeredMarshaler := range registeredMarshalers {
+				if registeredMarshaler.DiscreteType == discreteType {
+					return registeredMarshaler.ContentType
+				}
+			}
+		} else {
+			for _, registeredMarshaler := range registeredMarshalers {
+				if registeredMarshaler.ContentType == acceptPart {
+					return registeredMarshaler.ContentType
+				}
+			}
+		}
+	}
+
+	return ""
 }

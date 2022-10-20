@@ -80,3 +80,71 @@ func TestMarshal(t *testing.T) {
 		})
 	}
 }
+
+func TestAcceptableMarshalContentType(t *testing.T) {
+	type args struct {
+		accept string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "accept_json",
+			args: args{
+				accept: "application/json",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "accept_json_with_args",
+			args: args{
+				accept: "application/json; charset=utf-8",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "accept_application",
+			args: args{
+				accept: "application/*",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "accept_any",
+			args: args{
+				accept: "*/*",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "use_first",
+			args: args{
+				accept: "text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "use_second",
+			args: args{
+				accept: "application/xml, application/json;q=0.9, */*;q=0.8",
+			},
+			want: MimeTypeJson,
+		},
+		{
+			name: "missmatch",
+			args: args{
+				accept: "text/html, application/xhtml+xml, application/xml;q=0.9",
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := AcceptableMarshalContentType(tt.args.accept); got != tt.want {
+				t.Errorf("AcceptableMarshalContentType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
