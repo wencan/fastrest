@@ -9,12 +9,11 @@ import (
 	"github.com/wencan/fastrest/restcodecs/restvalues"
 	"github.com/wencan/fastrest/resterror"
 	"github.com/wencan/fastrest/restutils"
-	"google.golang.org/grpc/codes"
 )
 
 // RequestErrorWrapper 请求处理错误包装。可以用来包装或覆盖请求错误。
 var RequestErrorWrapper = func(ctx context.Context, err error) error {
-	return resterror.ErrorWithStatus(err, http.StatusBadRequest, codes.InvalidArgument)
+	return resterror.ErrorWithStatus(err, resterror.StatusInvalidArgument)
 }
 
 // ReadRequest 解析请求到对象。

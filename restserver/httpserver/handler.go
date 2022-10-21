@@ -33,7 +33,7 @@ func (config HandlerConfig) NewHandler(handler HandlerFunc) http.HandlerFunc {
 		}
 		response, err = handler(r)
 
-		statusCode := HTTPStatus(err)
+		statusCode := HTTPStatusCode(err)
 		w.WriteHeader(statusCode)
 
 		if response != nil {

@@ -9,22 +9,24 @@ import (
 // HTTPStatusError 提供Http状态码的错误接口。
 type HTTPStatusError interface {
 	error
-	HTTPStatus() int
+	HTTPStatusCode() int
 }
 
-// HTTPStatus err对应的错误码。
+// HTTPStatus err对应的HTTP状态文本和状态码。
 // 如果err为nil，返回200；
 // 如果err实现了HTTPStatusError接口，返回HTTPStatus()的结果；
 // 否则返回500。
-func HTTPStatus(err error) int {
+func HTTPStatusCode(err error) int {
 	err = resterror.FixNilError(err)
 	if err == nil {
 		return http.StatusOK
 	}
 
+	err = resterror.Unwrap(err)
+
 	statusError, _ := err.(HTTPStatusError)
 	if statusError != nil {
-		return statusError.HTTPStatus()
+		return statusError.HTTPStatusCode()
 	}
 
 	return http.StatusInternalServerError

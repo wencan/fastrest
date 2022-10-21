@@ -9,7 +9,6 @@ import (
 
 	"github.com/wencan/fastrest/resterror"
 	"github.com/wencan/fastrest/restutils"
-	"google.golang.org/grpc/codes"
 )
 
 func Test_GetHandler(t *testing.T) {
@@ -60,7 +59,7 @@ func Test_GetHandler(t *testing.T) {
 			args: args{
 				config: &DefaultHandlerConfig,
 				handler: func(r *http.Request) (response interface{}, err error) {
-					return nil, resterror.ErrorWithStatus(errors.New("test"), http.StatusBadRequest, codes.InvalidArgument)
+					return nil, resterror.ErrorWithStatus(errors.New("test"), resterror.StatusInvalidArgument)
 				},
 				url: "/echo?greeting=hello",
 			},
