@@ -33,55 +33,55 @@ func (s builtInStatus) GRPCCode() codes.Code {
 
 var (
 	// StatusOk 成功。
-	StatusOk = builtInStatus{
+	StatusOk Status = builtInStatus{
 		HttpStatusCode: http.StatusOK,
 		GRpcCode:       codes.OK,
 	}
 
 	// StatusInvalidArgument 无效参数。
-	StatusInvalidArgument = builtInStatus{
+	StatusInvalidArgument Status = builtInStatus{
 		HttpStatusCode: http.StatusBadRequest,
 		GRpcCode:       codes.InvalidArgument,
 	}
 
 	// StatusNotFound 没找到。
-	StatusNotFound = builtInStatus{
+	StatusNotFound Status = builtInStatus{
 		HttpStatusCode: http.StatusNotFound,
 		GRpcCode:       codes.NotFound,
 	}
 
 	// StatusPermissionDenied 拒绝访问。
-	StatusPermissionDenied = builtInStatus{
+	StatusPermissionDenied Status = builtInStatus{
 		HttpStatusCode: http.StatusForbidden,
 		GRpcCode:       codes.PermissionDenied,
 	}
 
 	// StatusFailedPrecondition 条件不满足
-	StatusFailedPrecondition = builtInStatus{
+	StatusFailedPrecondition Status = builtInStatus{
 		HttpStatusCode: http.StatusPreconditionFailed,
 		GRpcCode:       codes.FailedPrecondition,
 	}
 
 	// StatusUnimplemented 未实现。
-	StatusUnimplemented = builtInStatus{
+	StatusUnimplemented Status = builtInStatus{
 		HttpStatusCode: http.StatusNotImplemented,
 		GRpcCode:       codes.Unimplemented,
 	}
 
 	// StatusInternal 内部错误。
-	StatusInternal = builtInStatus{
+	StatusInternal Status = builtInStatus{
 		HttpStatusCode: http.StatusInternalServerError,
 		GRpcCode:       codes.Internal,
 	}
 
 	// StatusUnavailable 服务当前不可用。
-	StatusUnavailable = builtInStatus{
+	StatusUnavailable Status = builtInStatus{
 		HttpStatusCode: http.StatusServiceUnavailable,
 		GRpcCode:       codes.Unavailable,
 	}
 
 	// StatusUnauthenticated 未认证。
-	StatusUnauthenticated = builtInStatus{
+	StatusUnauthenticated Status = builtInStatus{
 		HttpStatusCode: http.StatusUnauthorized,
 		GRpcCode:       codes.Unauthenticated,
 	}
