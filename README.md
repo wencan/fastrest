@@ -22,7 +22,7 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache#MCaching">MCaching</a></td><td>批量数据的缓存中间件</td>
     </tr>
     <tr>
-        <td>restcache/lrucache</td><td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache/lrucache#LRUCache">LRUCache</a></td><td>LRU缓存存储</td><td>基于<a href="https://pkg.go.dev/github.com/wencan/gox/xsync#LRUMap">LRUMap</a>实现</td>
+        <td>restcache/lrucache</td><td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache/lrucache#LRUCache">LRUCache</a></td><td>LRU缓存存储</td><td>实现了restcache的缓存存储接口。<br>基于<a href="https://pkg.go.dev/github.com/wencan/gox/xsync#LRUMap">LRUMap</a>实现。</td>
     </tr>
 </table>
 
