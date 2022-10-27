@@ -16,7 +16,10 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver">restserver/httpserver</a></td><td></td><td>http服务组件</td><td>未完成</td>
     </tr>
     <tr>
-        <td rowspan="2">restcache</td><td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache#Caching">Caching</a></td><td>单个数据的缓存中间件</td><td rowspan="2">基于<a href="https://pkg.go.dev/github.com/wencan/gox/xsync/sentinel#SentinelGroup">SentinelGroup</a>解决缓存实效风暴问题。<br>简单介绍见<a href="https://blog.wencan.org/2022/10/17/restcache/">这里</a>。</td>
+        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver/stdmiddlewares">restserver/httpserver/stdmiddlewares</a></td><td></td><td>http中间件</td><td>一个http的缓存中间件（暂不支持缓存控制）</td>
+    </tr>
+    <tr>
+        <td rowspan="2">restcache</td><td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache#Caching">Caching</a></td><td>单个数据的缓存中间件</td><td rowspan="2">缓存流程的胶水逻辑。<br>基于<a href="https://pkg.go.dev/github.com/wencan/gox/xsync/sentinel#SentinelGroup">SentinelGroup</a>解决缓存实效风暴问题。<br>简单介绍见<a href="https://blog.wencan.org/2022/10/17/restcache/">这里</a>。</td>
     </tr>
     <tr>
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache#MCaching">MCaching</a></td><td>批量数据的缓存中间件</td>
@@ -48,6 +51,18 @@ var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interf
     }{
         Echo: req.Greeting,
     }, nil
+})
+```
+
+### fastrest/restserver/httpserver/stdmiddlewares：HTTP缓存中间件
+```go
+storage := lrucache.NewLRUCache(10000, 10)    // 一般也可能是redis客户端
+ttlRange := [2]time.Duration{time.Minute * 4, time.Minute * 6}
+cacheMiddleware := NewCacheMiddleware(storage, ttlRange, nil)
+
+var handler http.HandlerFunc = cacheMiddleware(func(w http.ResponseWriter, r *http.Request) {
+    // 缓存未命中，才会执行这里
+    // ... ...
 })
 ```
 
