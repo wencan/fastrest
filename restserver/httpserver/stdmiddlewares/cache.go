@@ -119,6 +119,7 @@ func NewCacheMiddleware(storage restcache.Storage, ttlRange [2]time.Duration, ke
 			args.next = next
 
 			// 执行缓存逻辑
+			// 如果没命中缓存，由缓存中间件去执行next
 			found, err := caching.Get(r.Context(), resp, key, args)
 			if !found || err != nil { // 这里不应该返回not found，或者err != nil
 				fmt.Fprintf(os.Stderr, "Error in cache middleware")
