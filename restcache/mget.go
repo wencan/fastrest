@@ -13,17 +13,19 @@ import (
 )
 
 // MStorage 支持批量操作的缓存存储接口。一般是对接redis、lru，透明处理业务数据。
+// 因为MStorage和Storage的数据可能存储在一起，当key格式相同时，MStorage数据元素类型，应该同Storage数据元素类型。
 type MStorage interface {
 	// MGet 批量查询存储的数据。
-	// destSlicePtr元素的顺序同keys的顺序。如果keys重复，destSlicePtr元素也必须相应重复。
+	// 当key格式相同时，valueSlicePtr指针参数指向的切片类型，同MSet方法valueSlice参数类型。
+	// valueSlicePtr指向的切片的元素顺序同keys的顺序。如果keys重复，valueSlicePtr元素也必须相应重复。
 	// 如果全部没找到，或者部分没找到，返回没找到部分的下标，不返回错误。
 	// 实现逻辑应该处理掉需要忽略的错误。
-	MGet(ctx context.Context, keys []string, destSlicePtr interface{}) (missIndexes []int, err error)
+	MGet(ctx context.Context, keys []string, valueSlicePtr interface{}) (missIndexes []int, err error)
 
 	// MSet 批量存储数据。
 	// keys和destSlice同长度同顺序。
 	// 实现逻辑应该处理掉需要忽略的错误。
-	MSet(ctx context.Context, keys []string, destSlice interface{}, ttl time.Duration) error
+	MSet(ctx context.Context, keys []string, valueSlice interface{}, ttl time.Duration) error
 }
 
 // MQueryFunc 批量查询函数。
