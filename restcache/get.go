@@ -2,6 +2,7 @@ package restcache
 
 import (
 	"context"
+	"reflect"
 	"time"
 
 	"github.com/wencan/fastrest/resterror"
@@ -9,9 +10,11 @@ import (
 )
 
 // Storage 缓存存储接口。一般是对接redis、lru，透明处理业务数据。
+// 因为MStorage和Storage的数据可能存储在一起，当key格式相同时，MStorage数据元素类型，应该同Storage数据元素类型。
 type Storage interface {
 	// Get 查询存储的数据。
 	// 实现逻辑应该处理掉需要忽略的错误。
+	// 当key格式相同时，valuePtr指针参数指向的类型，同Set方法的value参数的类型。
 	Get(ctx context.Context, key string, valuePtr interface{}) (found bool, err error)
 
 	// Set 存储数据。
@@ -68,7 +71,8 @@ func (caching *Caching) Get(ctx context.Context, destPtr interface{}, key string
 		}
 
 		// 保存
-		err = caching.Storage.Set(ctx, key, destPtr, getTTL(caching.TTLRange))
+		dest := reflect.ValueOf(destPtr).Elem().Interface() // 传入指针，是为了取得值。这里存指针指向的内容。
+		err = caching.Storage.Set(ctx, key, dest, getTTL(caching.TTLRange))
 		if err != nil {
 			// Storage的实现逻辑应该处理掉需要忽略的错误
 			return err

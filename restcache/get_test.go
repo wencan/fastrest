@@ -73,9 +73,9 @@ func TestCaching_GetQueried(t *testing.T) {
 		*p = value.(Response)
 		return true, nil
 	}).Times(2)
-	mockStorage.EXPECT().Set(gomock.Eq(ctx), gomock.AssignableToTypeOf(""), gomock.AssignableToTypeOf((*Response)(nil)), gomock.AssignableToTypeOf(time.Second)).DoAndReturn(func(ctx context.Context, key string, value interface{}, TTL time.Duration) error {
-		response := value.(*Response)
-		mockInternalStore[key] = *response
+	mockStorage.EXPECT().Set(gomock.Eq(ctx), gomock.AssignableToTypeOf(""), gomock.AssignableToTypeOf(Response{}), gomock.AssignableToTypeOf(time.Second)).DoAndReturn(func(ctx context.Context, key string, value interface{}, TTL time.Duration) error {
+		response := value.(Response)
+		mockInternalStore[key] = response
 		return nil
 	}).Times(1)
 
@@ -131,8 +131,8 @@ func TestCaching_ConcurrentlyGet(t *testing.T) {
 		p.Echo = value.(string)
 		return true, nil
 	}).AnyTimes()
-	mockStorage.EXPECT().Set(gomock.Eq(ctx), gomock.AssignableToTypeOf(""), gomock.AssignableToTypeOf((*Response)(nil)), gomock.AssignableToTypeOf(time.Second)).DoAndReturn(func(ctx context.Context, key string, value interface{}, TTL time.Duration) error {
-		response := value.(*Response)
+	mockStorage.EXPECT().Set(gomock.Eq(ctx), gomock.AssignableToTypeOf(""), gomock.AssignableToTypeOf(Response{}), gomock.AssignableToTypeOf(time.Second)).DoAndReturn(func(ctx context.Context, key string, value interface{}, TTL time.Duration) error {
+		response := value.(Response)
 		mockInternalStore.Store(key, response.Echo)
 		return nil
 	}).Times(big)
