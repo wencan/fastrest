@@ -106,3 +106,61 @@ func ExampleMCaching_partialFound() {
 	// Output: echo: 1; echo: 2; echo: 3
 	// not found: key_notfound
 }
+
+func ExampleStorage_commonStorage() {
+	commonStorage := lrucache.NewLRUCache(10000, 10)
+
+	query := func(ctx context.Context, destPtr interface{}, args interface{}) (found bool, err error) {
+		req := args.(string)
+		resp := destPtr.(*string)
+		*resp = "echo: " + req
+		return true, nil
+	}
+	mquery := func(ctx context.Context, destSlicePtr interface{}, argsSlice interface{}) (missIndexes []int, err error) {
+		req := argsSlice.([]string)
+		resp := destSlicePtr.(*[]string)
+		for _, r := range req {
+			*resp = append(*resp, "echo: "+r)
+		}
+		return nil, nil
+	}
+
+	caching := Caching{
+		Storage:     commonStorage,
+		Query:       query,
+		TTLRange:    [2]time.Duration{time.Minute * 4, time.Minute * 6},
+		SentinelTTL: time.Second,
+	}
+	mcaching := MCaching{
+		MStorage:    commonStorage,
+		MQuery:      mquery,
+		TTLRange:    [2]time.Duration{time.Minute * 4, time.Minute * 6},
+		SentinelTTL: time.Second,
+	}
+
+	var resp string
+	key := "key:abc"
+	args := "abc"
+	found, err := caching.Get(context.TODO(), &resp, key, args)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if found {
+		fmt.Println(resp)
+	}
+
+	var keys = []string{"key:abc", "key:def"}
+	var argsSlice = []string{"abc", "def"}
+	var respSlice []string
+	_, err = mcaching.MGet(context.TODO(), &respSlice, keys, argsSlice)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(strings.Join(respSlice, "\n"))
+
+	// Output: echo: abc
+	// echo: abc
+	// echo: def
+}
