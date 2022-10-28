@@ -15,8 +15,8 @@ import (
 // RequestCacheKeyGenerator 根据http.Request生成缓存key。如果返回空字符串，表示不使用缓存。
 type RequestCacheKeyGenerator func(r *http.Request) string
 
-// DefaultRequestCacheKeyGenerator 默认的http.Request缓存key生成器。
-func DefaultRequestCacheKeyGenerator(r *http.Request) string {
+// DefaultRequestCacheKeyGenerator 默认的http.Request缓存key生成器。可覆盖。
+var DefaultRequestCacheKeyGenerator = func(r *http.Request) string {
 	switch r.Method {
 	case http.MethodGet, http.MethodHead:
 	default:
