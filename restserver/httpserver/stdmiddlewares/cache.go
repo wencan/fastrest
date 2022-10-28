@@ -1,7 +1,6 @@
 package stdmiddlewares
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -31,7 +30,7 @@ type cacheableResponse struct {
 
 	Headers http.Header `json:"headers" msgpack:"headers"`
 
-	Body bytes.Buffer `json:"-" msgpack:"-"`
+	Body []byte `json:"body" msgpack:"body"`
 }
 
 // Header 实现http.ResponseWriter接口。
@@ -44,7 +43,8 @@ func (resp *cacheableResponse) Header() http.Header {
 
 // Write 实现http.ResponseWriter接口。
 func (resp *cacheableResponse) Write(p []byte) (int, error) {
-	return resp.Body.Write(p)
+	resp.Body = append(resp.Body, p...) // 后面优化
+	return len(p), nil
 }
 
 // WriteHeader 实现http.ResponseWriter接口。
@@ -60,7 +60,9 @@ func (resp *cacheableResponse) Apply(w http.ResponseWriter) {
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	resp.Body.WriteTo(w)
+	if resp.Body != nil {
+		w.Write(resp.Body)
+	}
 }
 
 var cacheableResponsePool = sync.Pool{New: func() interface{} {
