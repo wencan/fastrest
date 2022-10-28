@@ -75,8 +75,6 @@ type handlerQueryArgs struct {
 	next http.HandlerFunc
 }
 
-var handleQueryArgsPool = sync.Pool{New: func() interface{} { return &handlerQueryArgs{} }}
-
 // NewCacheMiddleware 创建http.Handler的缓存中间件。
 // storage 为缓存存储器。
 // ttlRange 为缓存生存时间区间。
@@ -110,17 +108,11 @@ func NewCacheMiddleware(storage restcache.Storage, ttlRange [2]time.Duration, ke
 				return
 			}
 
-			resp := cacheableResponsePool.Get().(*cacheableResponse)
-			defer cacheableResponsePool.Put(resp)
-
-			args := handleQueryArgsPool.Get().(*handlerQueryArgs)
-			defer handleQueryArgsPool.Put(args)
-			args.request = r
-			args.next = next
-
 			// 执行缓存逻辑
 			// 如果没命中缓存，由缓存中间件去执行next
-			found, err := caching.Get(r.Context(), resp, key, args)
+			resp := cacheableResponse{}
+			args := &handlerQueryArgs{request: r, next: next}
+			found, err := caching.Get(r.Context(), &resp, key, args)
 			if !found || err != nil { // 这里不应该返回not found，或者err != nil
 				fmt.Fprintf(os.Stderr, "Error in cache middleware")
 				w.WriteHeader(http.StatusInternalServerError)
