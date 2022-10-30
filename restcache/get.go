@@ -54,9 +54,12 @@ func (caching *Caching) Get(ctx context.Context, destPtr interface{}, key string
 		// Storage的实现逻辑应该处理掉需要忽略的错误
 		return false, err
 	} else if found {
-		// 没错误
-		// 找到
-		return true, nil
+		// 通过可选的Validatable接口检查是否失效
+		// 如果已经失效， destPtr指向已污染的数据。如果实现了Reset方法，执行Reset
+		valid := validateAndReset(destPtr)
+		if valid {
+			return true, nil
+		}
 	}
 
 	// 哨兵机制。同一进程内，同一时间，不同查询同key的数据
@@ -94,4 +97,21 @@ func (caching *Caching) Get(ctx context.Context, destPtr interface{}, key string
 	}
 
 	return true, nil
+}
+
+// validateAndReset 校验缓存对象。如果失效且支持Reset，就Reset
+func validateAndReset(destPtr interface{}) (valid bool) {
+	validator, _ := destPtr.(Validatable)
+	if validator == nil || validator.IsValidCache() {
+		// 没实现Validatable接口，或者实现了但是检查结果是有效
+		return true
+	}
+	// 如果不是有效的，等同没找到
+	// 这里destPtr已经被污染，指向一个失效的缓存对象
+	resetable, _ := destPtr.(Resetable)
+	if resetable != nil {
+		resetable.Reset()
+	}
+
+	return false
 }

@@ -61,6 +61,11 @@ func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, ke
 	if err != nil {
 		return nil, err
 	}
+	// 移除失效的缓存 —— 通过可选的Validatable接口
+	cacheMissIndexes, err = removeInvalidCache(len(keys), cacheMissIndexes, destSlicePtr)
+	if err != nil {
+		return nil, err
+	}
 	if len(cacheMissIndexes) == 0 {
 		// 全部找到
 		return nil, nil
@@ -163,4 +168,41 @@ func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, ke
 	}
 
 	return missIndexes, nil
+}
+
+var validatorType = reflect.TypeOf((*Validatable)(nil)).Elem()
+
+// removeInvalidCache 通过可选的Validatable接口来检查缓存对象是否还有效，并移除无效缓存数据。
+func removeInvalidCache(keysLength int, cacheMissIndexes []int, destSlicePtr interface{}) (newCacheMissIndexes []int, err error) {
+	destSliceValue := reflect.ValueOf(destSlicePtr).Elem()
+	if destSliceValue.Len() == 0 || !destSliceValue.Type().Elem().Implements(validatorType) {
+		return cacheMissIndexes, nil
+	}
+
+	newDestSliceValue := reflect.MakeSlice(destSliceValue.Type(), 0, destSliceValue.Len())
+	var cachedCount int
+	for index := 0; index < keysLength; index++ {
+		if restutils.IntSliceContains(cacheMissIndexes, index) {
+			newCacheMissIndexes = append(newCacheMissIndexes, index)
+			continue
+		}
+
+		// 检查各个项，是否还是有效的
+		if cachedCount >= destSliceValue.Len() {
+			return nil, errors.New("not enough cache results")
+		}
+		destValue := destSliceValue.Index(cachedCount)
+		dest := destValue.Interface()
+		validator, _ := dest.(Validatable)
+		if validator.IsValidCache() {
+			newDestSliceValue = reflect.Append(newDestSliceValue, destValue)
+		} else {
+			newCacheMissIndexes = append(newCacheMissIndexes, index)
+		}
+
+		cachedCount++
+	}
+
+	destSliceValue.Set(newDestSliceValue)
+	return newCacheMissIndexes, nil
 }

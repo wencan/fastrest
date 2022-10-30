@@ -729,3 +729,75 @@ func TestMCaching_MGet(t *testing.T) {
 		})
 	}
 }
+
+func Test_removeInvalidCache(t *testing.T) {
+	type args struct {
+		keysLength       int
+		cacheMissIndexes []int
+		destSlicePtr     interface{}
+	}
+	tests := []struct {
+		name                    string
+		args                    args
+		wantNewCacheMissIndexes []int
+		wantErr                 bool
+	}{
+		{
+			name: "not_support_validate",
+			args: args{
+				keysLength:       3,
+				cacheMissIndexes: []int{0, 1},
+				destSlicePtr:     &[]string{},
+			},
+			wantNewCacheMissIndexes: []int{0, 1},
+		},
+		{
+			name: "all_found_valid",
+			args: args{
+				keysLength:       3,
+				cacheMissIndexes: []int{},
+				destSlicePtr:     &[]testResponseWithValid{{true}, {true}, {true}},
+			},
+			wantNewCacheMissIndexes: nil,
+		},
+		{
+			name: "not_found_valid",
+			args: args{
+				keysLength:       3,
+				cacheMissIndexes: []int{0, 1, 2},
+				destSlicePtr:     &[]testResponseWithValid{},
+			},
+			wantNewCacheMissIndexes: []int{0, 1, 2},
+		},
+		{
+			name: "all_found_invalid",
+			args: args{
+				keysLength:       3,
+				cacheMissIndexes: []int{},
+				destSlicePtr:     &[]testResponseWithValid{{false}, {false}, {false}},
+			},
+			wantNewCacheMissIndexes: []int{0, 1, 2},
+		},
+		{
+			name: "found_partial_invalid",
+			args: args{
+				keysLength:       5,
+				cacheMissIndexes: []int{0, 3},
+				destSlicePtr:     &[]testResponseWithValid{{false}, {true}, {false}, {true}},
+			},
+			wantNewCacheMissIndexes: []int{0, 1, 3, 4},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotNewCacheMissIndexes, err := removeInvalidCache(tt.args.keysLength, tt.args.cacheMissIndexes, tt.args.destSlicePtr)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("removeInvalidCache() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotNewCacheMissIndexes, tt.wantNewCacheMissIndexes) {
+				t.Errorf("removeInvalidCache() = %v, want %v", gotNewCacheMissIndexes, tt.wantNewCacheMissIndexes)
+			}
+		})
+	}
+}
