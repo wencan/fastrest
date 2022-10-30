@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +24,10 @@ var DefaultRequestCacheKeyGenerator = func(r *http.Request) string {
 		return ""
 	}
 
+	if strings.EqualFold(r.Header.Get("Cache-Control"), "no-Cache") {
+		return ""
+	}
+
 	return fmt.Sprintf("%s:%s:%s", r.Method, r.Host, r.RequestURI)
 }
 
@@ -31,6 +37,9 @@ type cacheableResponse struct {
 	Headers http.Header `json:"headers" msgpack:"headers"`
 
 	Body []byte `json:"body" msgpack:"body"`
+
+	// GenerateTimestamp 响应生成时的时间辍。用于判断缓存是否有效。
+	GenerateTimestamp int64 `json:"generate_ts" msgpack:"generate_ts"`
 }
 
 // Header 实现http.ResponseWriter接口。
@@ -50,6 +59,50 @@ func (resp *cacheableResponse) Write(p []byte) (int, error) {
 // WriteHeader 实现http.ResponseWriter接口。
 func (resp *cacheableResponse) WriteHeader(statusCode int) {
 	resp.StatusCode = statusCode
+}
+
+// IsValidCache 实现restcache的Validatable接口。
+func (resp cacheableResponse) IsValidCache() bool {
+	cacheCtrl := resp.Headers.Get("Cache-Control")
+
+	if strings.EqualFold(cacheCtrl, "no-Store") {
+		return false
+	}
+
+	// 下面根据时间判断
+	if resp.GenerateTimestamp <= 0 {
+		return true
+	}
+
+	if strings.HasPrefix(cacheCtrl, "max-age=") {
+		maxAge, _ := strconv.Atoi(strings.ReplaceAll(cacheCtrl, "max-age=", ""))
+		age := sinceUnix(resp.GenerateTimestamp)
+		return maxAge >= int(age)
+	}
+	if strings.HasPrefix(cacheCtrl, "s-maxage=") {
+		maxAge, _ := strconv.Atoi(strings.ReplaceAll(cacheCtrl, "s-maxage=", ""))
+		age := sinceUnix(resp.GenerateTimestamp)
+		return maxAge >= int(age)
+	}
+
+	expires := resp.Headers.Get("Expires")
+	if expires == "0" {
+		return true
+	}
+	expiresTime, _ := time.Parse(time.RFC1123, expires)
+	if !expiresTime.IsZero() {
+		return expiresTime.Unix() >= getNowUnix()
+	}
+
+	return true
+}
+
+// Reset 实现restcache的Resetable接口。
+// 当对象被污染后，reset内容。
+func (resp *cacheableResponse) Reset() {
+	resp.StatusCode = 0
+	resp.Headers = nil
+	resp.Body = nil
 }
 
 // Apply 输出。
@@ -81,7 +134,7 @@ type handlerQueryArgs struct {
 // storage 为缓存存储器。
 // ttlRange 为缓存生存时间区间。
 // keyGenerator 为缓存key生成器。默认为：DefaultRequestCacheKeyGenerator。
-// 暂不支持缓存控制。
+// 支持简单的常用的HTTP缓存控制。
 func NewCacheMiddleware(storage restcache.Storage, ttlRange [2]time.Duration, keyGenerator RequestCacheKeyGenerator) func(next http.HandlerFunc) http.HandlerFunc {
 	if keyGenerator == nil {
 		keyGenerator = DefaultRequestCacheKeyGenerator
@@ -96,6 +149,7 @@ func NewCacheMiddleware(storage restcache.Storage, ttlRange [2]time.Duration, ke
 		next := queryArgs.next
 
 		next(w, r)
+		w.GenerateTimestamp = time.Now().Unix() // 用于支持缓存控制
 		return true, nil
 	}
 
