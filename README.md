@@ -54,6 +54,22 @@ var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interf
 })
 ```
 
+也可以：
+```go
+type Request struct {
+    Greeting string `schema:"greeting" validate:"required"`
+}
+type Response struct {
+    Echo string `json:"echo"`
+}
+
+var handler http.HandlerFunc = NewReflectHandler(func(ctx context.Context, req *Request) (resp Response, err error) {
+    return Response{
+        Echo: req.Greeting,
+    }, nil
+}, ReadValidateRequest)
+```
+
 ### fastrest/restserver/httpserver/stdmiddlewares：HTTP缓存中间件
 ```go
 storage := lrucache.NewLRUCache(10000, 10)    // 一般也可能是redis客户端

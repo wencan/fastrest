@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,6 +27,43 @@ func ExampleNewHandler() {
 			Echo: req.Greeting,
 		}, nil
 	})
+
+	s := httptest.NewServer(handler)
+	defer s.Close()
+
+	client := s.Client()
+	resp, err := client.Get(s.URL + "/echo?greeting=hello")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("status code: %d", resp.StatusCode)
+		return
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(string(data))
+	// Output: {"echo":"hello"}
+}
+
+func ExampleNewReflectHandler() {
+	type Request struct {
+		Greeting string `schema:"greeting" validate:"required"`
+	}
+	var handler http.HandlerFunc = NewReflectHandler(func(ctx context.Context, req *Request) (resp interface{}, err error) {
+		return struct {
+			Echo string `json:"echo"`
+		}{
+			Echo: req.Greeting,
+		}, nil
+	}, nil)
 
 	s := httptest.NewServer(handler)
 	defer s.Close()
