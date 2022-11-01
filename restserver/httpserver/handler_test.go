@@ -1,11 +1,14 @@
 package httpserver
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/wencan/fastrest/resterror"
@@ -26,6 +29,7 @@ func Test_GetHandler(t *testing.T) {
 	}
 	type want struct {
 		statusCode   int
+		header       http.Header
 		responseBody []byte
 	}
 	tests := []struct {
@@ -49,8 +53,12 @@ func Test_GetHandler(t *testing.T) {
 				url: "/echo?greeting=hello",
 			},
 			want: want{
-				statusCode:   http.StatusOK,
-				responseBody: []byte(`{"echo":"hello"}`),
+				statusCode: http.StatusOK,
+				header: http.Header{
+					"Content-Length": []string{strconv.Itoa(len("{\"echo\":\"hello\"}\n"))},
+					"Content-Type":   []string{"application/json"},
+				},
+				responseBody: []byte("{\"echo\":\"hello\"}\n"),
 			},
 		},
 		{
@@ -62,7 +70,10 @@ func Test_GetHandler(t *testing.T) {
 				url: "/echo?greeting=hello",
 			},
 			want: want{
-				statusCode:   http.StatusBadRequest,
+				statusCode: http.StatusBadRequest,
+				header: http.Header{
+					"Content-Length": []string{"0"},
+				},
 				responseBody: []byte(``),
 			},
 		},
@@ -78,16 +89,29 @@ func Test_GetHandler(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+
 			if resp.StatusCode != tt.want.statusCode {
 				t.Fatalf("want status code: %d, got status code: %d", tt.want.statusCode, resp.StatusCode)
 			}
+
+			gotHeader := make(http.Header)
+			for key, values := range resp.Header {
+				if restutils.StringSliceContains([]string{"Date"}, key) {
+					continue
+				}
+				gotHeader[key] = values
+			}
+			if !reflect.DeepEqual(gotHeader, tt.want.header) {
+				t.Fatalf("want header: %v, got header: %v", tt.want.header, gotHeader)
+			}
+
 			data, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
 			defer resp.Body.Close()
-			if restutils.CompareHumanizeString(string(tt.want.responseBody), string(data)) != 0 {
-				t.Fatalf("want response: %s, got response: %s", string(tt.want.responseBody), string(data))
+			if !bytes.Equal(data, tt.want.responseBody) {
+				t.Fatalf("want response: %v, got response: %v", tt.want.responseBody, data)
 			}
 		})
 	}
@@ -108,6 +132,7 @@ func TestNewReflectHandler(t *testing.T) {
 	}
 	type want struct {
 		statusCode   int
+		header       http.Header
 		responseBody []byte
 	}
 	tests := []struct {
@@ -126,8 +151,12 @@ func TestNewReflectHandler(t *testing.T) {
 				url: "/echo?greeting=hello",
 			},
 			want: want{
-				statusCode:   http.StatusOK,
-				responseBody: []byte(`{"echo":"hello"}`),
+				statusCode: http.StatusOK,
+				header: http.Header{
+					"Content-Length": []string{strconv.Itoa(len("{\"echo\":\"hello\"}\n"))},
+					"Content-Type":   []string{"application/json"},
+				},
+				responseBody: []byte("{\"echo\":\"hello\"}\n"),
 			},
 		},
 		{
@@ -141,8 +170,12 @@ func TestNewReflectHandler(t *testing.T) {
 				url: "/echo?greeting=hello",
 			},
 			want: want{
-				statusCode:   http.StatusOK,
-				responseBody: []byte(`{"echo":"hello"}`),
+				statusCode: http.StatusOK,
+				header: http.Header{
+					"Content-Length": []string{strconv.Itoa(len("{\"echo\":\"hello\"}\n"))},
+					"Content-Type":   []string{"application/json"},
+				},
+				responseBody: []byte("{\"echo\":\"hello\"}\n"),
 			},
 		},
 		{
@@ -154,7 +187,10 @@ func TestNewReflectHandler(t *testing.T) {
 				url: "/echo?greeting=hello",
 			},
 			want: want{
-				statusCode:   http.StatusBadRequest,
+				statusCode: http.StatusBadRequest,
+				header: http.Header{
+					"Content-Length": []string{"0"},
+				},
 				responseBody: []byte(``),
 			},
 		},
@@ -173,13 +209,25 @@ func TestNewReflectHandler(t *testing.T) {
 			if resp.StatusCode != tt.want.statusCode {
 				t.Fatalf("want status code: %d, got status code: %d", tt.want.statusCode, resp.StatusCode)
 			}
+
+			gotHeader := make(http.Header)
+			for key, values := range resp.Header {
+				if restutils.StringSliceContains([]string{"Date"}, key) {
+					continue
+				}
+				gotHeader[key] = values
+			}
+			if !reflect.DeepEqual(gotHeader, tt.want.header) {
+				t.Fatalf("want header: %v, got header: %v", tt.want.header, gotHeader)
+			}
+
 			data, err := io.ReadAll(resp.Body)
 			if err != nil {
 				t.Fatal(err)
 			}
 			defer resp.Body.Close()
-			if restutils.CompareHumanizeString(string(tt.want.responseBody), string(data)) != 0 {
-				t.Fatalf("want response: %s, got response: %s", string(tt.want.responseBody), string(data))
+			if !bytes.Equal(tt.want.responseBody, data) {
+				t.Fatalf("want response: %v, got response: %v", tt.want.responseBody, data)
 			}
 		})
 	}

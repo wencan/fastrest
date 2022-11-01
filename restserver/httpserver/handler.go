@@ -20,14 +20,11 @@ func NewHandler(handler HandlerFunc) http.HandlerFunc {
 		response, err = handler(r)
 
 		statusCode := HTTPStatusCode(err)
-		w.WriteHeader(statusCode)
 
-		if response != nil {
-			accept := r.Header.Get("Accept")
-			err = WriteResponse(ctx, accept, response, w)
-			if err != nil {
-				log.Printf("failed to write response, error: %s\n", err)
-			}
+		accept := r.Header.Get("Accept")
+		err = WriteResponse(ctx, statusCode, accept, response, w)
+		if err != nil {
+			log.Printf("failed to write response, error: %s\n", err)
 		}
 	}
 }
