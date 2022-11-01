@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/wencan/fastrest/restcodecs/restmime"
 )
 
 func ExampleNewHandler() {
@@ -90,25 +88,23 @@ func ExampleNewReflectHandler() {
 	// Output: {"echo":"hello"}
 }
 
-func ExampleHandlerConfig() {
-	config := &HandlerConfig{
-		Middleware: ChainHandlerMiddlewares(func(next HandlerFunc) HandlerFunc {
-			return func(r *http.Request) (response interface{}, err error) {
-				fmt.Println(r.RequestURI)
-				response, err = next(r)
-				if err != nil {
-					return nil, err
-				}
-				return struct {
-					Data interface{} `json:"data"`
-				}{
-					Data: response,
-				}, nil
+func ExampleNewHandler_withMiddleware() {
+	middleware := ChainHandlerMiddlewares(func(next HandlerFunc) HandlerFunc {
+		return func(r *http.Request) (response interface{}, err error) {
+			fmt.Println(r.RequestURI)
+			response, err = next(r)
+			if err != nil {
+				return nil, err
 			}
-		}, RecoveryMiddleware),
-		DefaultAccept: restmime.MimeTypeJson,
-	}
-	handler := config.NewHandler(func(r *http.Request) (response interface{}, err error) {
+			return struct {
+				Data interface{} `json:"data"`
+			}{
+				Data: response,
+			}, nil
+		}
+	}, RecoveryMiddleware)
+
+	handler := NewHandler(middleware(func(r *http.Request) (response interface{}, err error) {
 		req := struct {
 			Greeting string `schema:"greeting"`
 		}{}
@@ -122,7 +118,7 @@ func ExampleHandlerConfig() {
 		}{
 			Echo: req.Greeting,
 		}, nil
-	})
+	}))
 
 	s := httptest.NewServer(handler)
 	defer s.Close()

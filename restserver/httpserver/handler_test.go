@@ -21,7 +21,6 @@ func Test_GetHandler(t *testing.T) {
 	}
 
 	type args struct {
-		config  *HandlerConfig
 		handler HandlerFunc
 		url     string
 	}
@@ -37,7 +36,6 @@ func Test_GetHandler(t *testing.T) {
 		{
 			name: "test_get",
 			args: args{
-				config: &DefaultHandlerConfig,
 				handler: func(r *http.Request) (response interface{}, err error) {
 					var req Request
 					err = ReadRequest(r.Context(), &req, r)
@@ -58,7 +56,6 @@ func Test_GetHandler(t *testing.T) {
 		{
 			name: "test_get_400",
 			args: args{
-				config: &DefaultHandlerConfig,
 				handler: func(r *http.Request) (response interface{}, err error) {
 					return nil, resterror.ErrorWithStatus(errors.New("test"), resterror.StatusInvalidArgument)
 				},
@@ -72,7 +69,7 @@ func Test_GetHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hander := tt.args.config.NewHandler(tt.args.handler)
+			hander := NewHandler(tt.args.handler)
 			s := httptest.NewServer(hander)
 			defer s.Close()
 
@@ -105,7 +102,6 @@ func TestNewReflectHandler(t *testing.T) {
 	}
 
 	type args struct {
-		config          *HandlerConfig
 		f               interface{}
 		readRequestFunc ReadRequestFunc
 		url             string
@@ -122,7 +118,6 @@ func TestNewReflectHandler(t *testing.T) {
 		{
 			name: "test_get_request-response",
 			args: args{
-				config: &DefaultHandlerConfig,
 				f: func(ctx context.Context, req *Request) (response Response, err error) {
 					return Response{
 						Echo: req.Greeting,
@@ -138,7 +133,6 @@ func TestNewReflectHandler(t *testing.T) {
 		{
 			name: "test_get_request-any",
 			args: args{
-				config: &DefaultHandlerConfig,
 				f: func(ctx context.Context, req *Request) (response interface{}, err error) {
 					return Response{
 						Echo: req.Greeting,
@@ -154,7 +148,6 @@ func TestNewReflectHandler(t *testing.T) {
 		{
 			name: "test_get_400",
 			args: args{
-				config: &DefaultHandlerConfig,
 				f: func(ctx context.Context, req *Request) (response interface{}, err error) {
 					return nil, resterror.ErrorWithStatus(errors.New("test"), resterror.StatusInvalidArgument)
 				},
@@ -168,7 +161,7 @@ func TestNewReflectHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hander := tt.args.config.NewReflectHandler(tt.args.f, tt.args.readRequestFunc)
+			hander := NewReflectHandler(tt.args.f, tt.args.readRequestFunc)
 			s := httptest.NewServer(hander)
 			defer s.Close()
 
