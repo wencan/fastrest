@@ -10,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wencan/fastrest/restcodecs/restmime"
+	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestWriteResponse(t *testing.T) {
@@ -50,6 +52,24 @@ func TestWriteResponse(t *testing.T) {
 			want: want{
 				header:       http.Header{"Content-Type": []string{"application/json"}},
 				responseBody: []byte("{\"echo\":\"test\"}\n"),
+			},
+		},
+		{
+			name: "accept_proto",
+			args: args{
+				accept: restmime.MimeTypeProtobuf,
+				response: &helloworld.HelloRequest{
+					Name: "Tom",
+				},
+			},
+			want: want{
+				header: http.Header{"Content-Type": []string{"application/x-protobuf"}},
+				responseBody: func() []byte {
+					data, _ := proto.Marshal(&helloworld.HelloRequest{
+						Name: "Tom",
+					})
+					return data
+				}(),
 			},
 		},
 	}
