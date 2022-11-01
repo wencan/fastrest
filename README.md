@@ -13,7 +13,7 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
         <th>包</th><th>结构体/方法</th><th>作用</th><th>说明</th>
     </tr>
     <tr>
-        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver">restserver/httpserver</a></td><td></td><td>http服务组件</td><td>未完成</td>
+        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver">restserver/httpserver</a></td><td></td><td>http服务组件</td><td>一套创建Handler、解析请求、输出响应的辅助函数，组合http、multiplexer一起使用</td>
     </tr>
     <tr>
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver/stdmiddlewares">restserver/httpserver/stdmiddlewares</a></td><td></td><td>http中间件</td><td>一个http的缓存中间件，支持简单的常见的缓存控制策略</td>
@@ -54,7 +54,7 @@ var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interf
 })
 ```
 
-也可以：
+或者：
 ```go
 type Request struct {
     Greeting string `schema:"greeting" validate:"required"`
