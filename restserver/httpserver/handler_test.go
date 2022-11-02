@@ -117,7 +117,7 @@ func Test_GetHandler(t *testing.T) {
 	}
 }
 
-func TestNewReflectHandler(t *testing.T) {
+func TestNewHandlerFunc(t *testing.T) {
 	type Request struct {
 		Greeting string `schema:"greeting"`
 	}
@@ -197,7 +197,7 @@ func TestNewReflectHandler(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hander := NewReflectHandler(tt.args.f, tt.args.readRequestFunc)
+			hander := NewHandler(NewHandlerFunc(tt.args.f, tt.args.readRequestFunc))
 			s := httptest.NewServer(hander)
 			defer s.Close()
 

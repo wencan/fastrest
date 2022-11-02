@@ -12,13 +12,20 @@ func BenchmarkNewHandler(b *testing.B) {
 	type Request struct {
 		Greeting string `schema:"greeting" validate:"required"`
 	}
-	var handler http.HandlerFunc = NewReflectHandler(func(ctx context.Context, req *Request) (resp interface{}, err error) {
-		return struct {
-			Echo string `json:"echo"`
-		}{
+	type Response struct {
+		Echo string `json:"echo"`
+	}
+	var handler http.HandlerFunc = NewHandler(func(r *http.Request) (resp interface{}, err error) {
+		var req Request
+		err = ReadRequest(r.Context(), &req, r)
+		if err != nil {
+			return nil, err
+		}
+
+		return Response{
 			Echo: req.Greeting,
 		}, nil
-	}, nil)
+	})
 
 	s := httptest.NewServer(handler)
 	defer s.Close()
@@ -47,23 +54,18 @@ func BenchmarkNewHandler(b *testing.B) {
 	})
 }
 
-func BenchmarkNewReflectHandler(b *testing.B) {
+func BenchmarkNewHandlerFunc(b *testing.B) {
 	type Request struct {
 		Greeting string `schema:"greeting" validate:"required"`
 	}
-	var handler http.HandlerFunc = NewHandler(func(r *http.Request) (resp interface{}, err error) {
-		var req Request
-		err = ReadRequest(r.Context(), &req, r)
-		if err != nil {
-			return nil, err
-		}
-
-		return struct {
-			Echo string `json:"echo"`
-		}{
+	type Response struct {
+		Echo string `json:"echo"`
+	}
+	var handler http.HandlerFunc = NewHandler(NewHandlerFunc(func(ctx context.Context, req *Request) (resp Response, err error) {
+		return Response{
 			Echo: req.Greeting,
 		}, nil
-	})
+	}, nil))
 
 	s := httptest.NewServer(handler)
 	defer s.Close()
@@ -126,18 +128,18 @@ func BenchmarkNewHandler_withoutServe(b *testing.B) {
 	})
 }
 
-func BenchmarkNewReflectHandler_withoutServe(b *testing.B) {
+func BenchmarkNewHandlerFunc_withoutServe(b *testing.B) {
 	type Request struct {
 		Greeting string `schema:"greeting" validate:"required"`
 	}
 	type Response struct {
 		Echo string `json:"echo"`
 	}
-	var handler http.HandlerFunc = NewReflectHandler(func(ctx context.Context, req *Request) (resp Response, err error) {
+	var handler http.HandlerFunc = NewHandler(NewHandlerFunc(func(ctx context.Context, req *Request) (resp Response, err error) {
 		return Response{
 			Echo: req.Greeting,
 		}, nil
-	}, nil)
+	}, nil))
 
 	r, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, "/echo?greeting=hello", nil)
 	if err != nil {
