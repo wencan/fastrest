@@ -33,10 +33,15 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
 
 ### restserver/httpserver: 创建一个HTTP Handler
 ```go
+type Request struct {
+    Greeting string `schema:"greeting" json:"greeting" validate:"required"`
+}
+type Response struct {
+    Echo string `json:"echo"`
+}
+
 var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
-    req := struct {
-        Greeting string `schema:"greeting" validate:"required"`
-    }{}
+    var req Request
     // parse and validate query
     err = ReadValidateRequest(r.Context(), &req, r)
     if err != nil {
@@ -46,9 +51,7 @@ var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interf
     // do things
 
     // output json body
-    return struct {
-        Echo string `json:"echo"`
-    }{
+    return Response{
         Echo: req.Greeting,
     }, nil
 })
@@ -57,12 +60,13 @@ var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interf
 或者：
 ```go
 type Request struct {
-    Greeting string `schema:"greeting" validate:"required"`
+    Greeting string `schema:"greeting" json:"greeting" validate:"required"`
 }
 type Response struct {
     Echo string `json:"echo"`
 }
 
+// NewHandler + NewHandlerFunc 可以将一个gRPC服务方法，转为http.HandlerFunc。
 var handler http.HandlerFunc = NewHandler(NewHandlerFunc(func(ctx context.Context, req *Request) (resp *Response, err error) {
     // do things
 

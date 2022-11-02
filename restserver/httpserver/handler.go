@@ -31,8 +31,9 @@ func NewHandler(handler HandlerFunc) http.HandlerFunc {
 
 // NewHandlerFunc 通过反射，将一个处理函数转换为HandlerFunc。
 // f 的签名必须是： func (context.Context, <RequestType>) (<ResponseType>, error)。
-// 如果f是一个gRPC方法，方法返回的错误码需要同时支持gRPC和HTTP。可以用resterror.ErrorWithStatus包装错误，或者编写一个实现了httpserver.HTTPStatusError接口和GRPCStatus() *google.golang.org/grpc/status.Status方法的错误结构。
 // readRequest用于解析请求，默认为ReadRequest。
+// NewHandler + NewHandlerFunc 可以将一个gRPC服务方法，转为http.HandlerFunc。
+// 如果f是一个gRPC方法，方法返回的错误码需要同时支持gRPC和HTTP。可以用resterror.ErrorWithStatus包装错误，或者编写一个实现了httpserver.HTTPStatusError接口和GRPCStatus() *google.golang.org/grpc/status.Status方法的错误结构。
 func NewHandlerFunc(f interface{}, readRequestFunc ReadRequestFunc) HandlerFunc {
 	fValue := reflect.ValueOf(f)
 	fType := fValue.Type()
