@@ -13,6 +13,7 @@ import (
 
 	"github.com/wencan/fastrest/resterror"
 	"github.com/wencan/fastrest/restutils"
+	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 func Test_GetHandler(t *testing.T) {
@@ -117,9 +118,19 @@ func Test_GetHandler(t *testing.T) {
 	}
 }
 
+// testGRPCServer is used to implement helloworld.GreeterServer.
+type testGRPCServer struct {
+	helloworld.UnimplementedGreeterServer
+}
+
+// SayHello implements helloworld.GreeterServer
+func (s testGRPCServer) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	return &helloworld.HelloReply{Message: "Hello " + in.GetName()}, nil
+}
+
 func TestNewHandlerFunc(t *testing.T) {
 	type Request struct {
-		Greeting string `schema:"greeting"`
+		Greeting string `schema:"greeting" json:"greeting"`
 	}
 	type Response struct {
 		Echo string `json:"echo"`
@@ -128,7 +139,11 @@ func TestNewHandlerFunc(t *testing.T) {
 	type args struct {
 		f               interface{}
 		readRequestFunc ReadRequestFunc
-		url             string
+
+		method string
+		url    string
+		header http.Header
+		body   io.Reader
 	}
 	type want struct {
 		statusCode   int
@@ -148,7 +163,8 @@ func TestNewHandlerFunc(t *testing.T) {
 						Echo: req.Greeting,
 					}, nil
 				},
-				url: "/echo?greeting=hello",
+				method: http.MethodGet,
+				url:    "/echo?greeting=hello",
 			},
 			want: want{
 				statusCode: http.StatusOK,
@@ -167,7 +183,8 @@ func TestNewHandlerFunc(t *testing.T) {
 						Echo: req.Greeting,
 					}, nil
 				},
-				url: "/echo?greeting=hello",
+				method: http.MethodGet,
+				url:    "/echo?greeting=hello",
 			},
 			want: want{
 				statusCode: http.StatusOK,
@@ -179,12 +196,33 @@ func TestNewHandlerFunc(t *testing.T) {
 			},
 		},
 		{
+			name: "test_from-grpc-method",
+			args: args{
+				f:      testGRPCServer{}.SayHello,
+				method: http.MethodPost,
+				url:    "/echo",
+				header: http.Header{
+					"Content-Type": []string{"application/json"},
+				},
+				body: bytes.NewBufferString("{\"name\":\"Tom\"}"),
+			},
+			want: want{
+				statusCode: http.StatusOK,
+				header: http.Header{
+					"Content-Length": []string{strconv.Itoa(len("{\"message\":\"Hello Tom\"}\n"))},
+					"Content-Type":   []string{"application/json"},
+				},
+				responseBody: []byte("{\"message\":\"Hello Tom\"}\n"),
+			},
+		},
+		{
 			name: "test_get_400",
 			args: args{
 				f: func(ctx context.Context, req *Request) (response interface{}, err error) {
 					return nil, resterror.ErrorWithStatus(errors.New("test"), resterror.StatusInvalidArgument)
 				},
-				url: "/echo?greeting=hello",
+				method: http.MethodGet,
+				url:    "/echo?greeting=hello",
 			},
 			want: want{
 				statusCode: http.StatusBadRequest,
@@ -202,7 +240,17 @@ func TestNewHandlerFunc(t *testing.T) {
 			defer s.Close()
 
 			client := s.Client()
-			resp, err := client.Get(s.URL + tt.args.url)
+			r, err := http.NewRequestWithContext(context.TODO(), tt.args.method, s.URL+tt.args.url, tt.args.body)
+			if err != nil {
+				t.Fatal(err)
+				return
+			}
+			for key, values := range tt.args.header {
+				for _, value := range values {
+					r.Header.Add(key, value)
+				}
+			}
+			resp, err := client.Do(r)
 			if err != nil {
 				t.Fatal(err)
 			}
