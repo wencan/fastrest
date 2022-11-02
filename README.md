@@ -63,13 +63,13 @@ type Response struct {
     Echo string `json:"echo"`
 }
 
-var handler http.HandlerFunc = NewReflectHandler(func(ctx context.Context, req *Request) (resp Response, err error) {
+var handler http.HandlerFunc = NewHandler(NewHandlerFunc(func(ctx context.Context, req *Request) (resp Response, err error) {
     // do things
 
     return Response{
         Echo: req.Greeting,
     }, nil
-}, ReadValidateRequest)
+}, ReadValidateRequest))
 ```
 
 ### fastrest/restserver/httpserver/stdmiddlewares：HTTP缓存中间件
