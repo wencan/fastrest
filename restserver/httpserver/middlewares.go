@@ -33,7 +33,7 @@ var HandleRecovery = func(r *http.Request, recovery interface{}) (overwriteRecov
 	return resterror.NewPanicError(recovery)
 }
 
-// RecoveryMiddleware 处理panic的中间件。
+// RecoveryMiddleware 处理panic的中间件。recover()返回值将被转为error。
 func RecoveryMiddleware(next HandlerFunc) HandlerFunc {
 	return func(r *http.Request) (response interface{}, err error) {
 		defer func() {
