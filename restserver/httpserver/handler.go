@@ -13,6 +13,8 @@ type HandlerFunc func(r *http.Request) (response interface{}, err error)
 // NewHandler 创建一个http.Handler。
 func NewHandler(handler HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
 		ctx := r.Context()
 		var response interface{}
 		var err error
