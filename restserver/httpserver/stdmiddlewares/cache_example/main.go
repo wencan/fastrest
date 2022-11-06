@@ -5,13 +5,11 @@ import (
 	"flag"
 	"io"
 	"log"
-	"net"
 	"net/http"
-	"os"
-	"os/signal"
 	"time"
 
 	"github.com/wencan/fastrest/restcache/lrucache"
+	"github.com/wencan/fastrest/restserver/httpserver"
 	"github.com/wencan/fastrest/restserver/httpserver/stdmiddlewares"
 )
 
@@ -56,33 +54,19 @@ func main() {
 		}
 	}))
 
-	var srv = http.Server{
+	ctx := context.Background()
+	var srv = httpserver.NewServer(ctx, &http.Server{
 		Addr:    *addr,
 		Handler: mux,
+	})
+	addr, err := srv.Start(ctx)
+	if err != nil {
+		log.Fatalln(err)
 	}
-	idleConnsClosed := make(chan struct{})
-	go func() {
-		sigint := make(chan os.Signal, 1)
-		signal.Notify(sigint, os.Interrupt)
-		<-sigint
+	log.Println("Listen running at:", addr)
 
-		if err := srv.Shutdown(context.Background()); err != nil {
-			log.Printf("Server Shutdown: %v", err)
-		}
-		close(idleConnsClosed)
-	}()
-	ln, err := net.Listen("tcp", srv.Addr)
+	err = srv.Wait(ctx)
 	if err != nil {
-		log.Fatalln("Listen:", err)
+		log.Fatalln(err)
 	}
-	log.Println("Listen running at:", srv.Addr)
-	err = srv.Serve(ln)
-	if err != nil {
-		if err == http.ErrServerClosed {
-			log.Println("Server closed")
-		} else {
-			log.Fatalln("Serve:", err)
-		}
-	}
-	<-idleConnsClosed
 }

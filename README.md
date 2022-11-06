@@ -13,7 +13,7 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
         <th>包</th><th>结构体/方法</th><th>作用</th><th>说明</th>
     </tr>
     <tr>
-        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver">restserver/httpserver</a></td><td></td><td>http服务组件</td><td>一套创建Handler、解析请求、输出响应的辅助函数，需要组合<a href="https://pkg.go.dev/net/http">http</a>、<a href="https://pkg.go.dev/net/http#ServeMux">multiplexer</a>一起使用</td>
+        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver">restserver/httpserver</a></td><td></td><td>http服务组件</td><td>一套http服务的辅助组件，需要组合<a href="https://pkg.go.dev/net/http">http</a>、<a href="https://pkg.go.dev/net/http#ServeMux">multiplexer</a>一起使用</td>
     </tr>
     <tr>
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver/stdmiddlewares">restserver/httpserver/stdmiddlewares</a></td><td></td><td>http中间件</td><td>一个http的缓存中间件，支持简单的常见的缓存控制策略</td>
@@ -30,6 +30,19 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
 </table>
 
 ## 示例
+
+### restserver/httpserver：启动一个HTTP Server
+```go
+s := NewServer(ctx, &http.Server{
+    Addr: "127.0.0.1:28080",
+    Handler: ...,
+})
+addr, err := s.Start(ctx) //  启动监听，开始服务。直至收到SIGTERM、SIGINT信号，或Stop被调用。
+fmt.Println("Listen running at:", addr)
+
+s.Stop(ctx)   // 结束监听
+err = s.Wait(ctx) // 等待处理完
+```
 
 ### restserver/httpserver: 创建一个HTTP Handler
 ```go
