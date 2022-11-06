@@ -3,9 +3,15 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/wencan/fastrest)](https://pkg.go.dev/github.com/wencan/fastrest)  
 
 
-Go语言RESTful服务通用组件  
+Go语言RESTful服务通用组件库  
 Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可能省去与业务无关的重复代码。  
-可以只使用个别组件，也可以组合起来当框架用。
+可以只使用个别组件，也可以组合起来当“框架”用。
+
+
+## fastrest与常说的“框架”的区别
+* fastrest是一些辅助性质的函数/结构的集合。
+* fastrest不造重复的轮子。
+* fastrest力求足够的开放。
 
 ## 目录  
 <table>
