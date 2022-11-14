@@ -35,7 +35,7 @@ func TestLRUCache(t *testing.T) {
 	}
 
 	// expired
-	time.Sleep(time.Millisecond * 200)
+	time.Sleep(time.Millisecond * 300)
 	var resp3 Response
 	ok, err = lruCache.Get(context.TODO(), "response_1", &resp3)
 	if assert.Nil(t, err) {

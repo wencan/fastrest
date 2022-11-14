@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wencan/fastrest/restutils"
 	"github.com/wencan/gox/xsync"
 )
 
@@ -44,7 +45,9 @@ func (lru *LRUCache) Get(ctx context.Context, key string, valuePtr interface{}) 
 	}
 
 	entry := value.(*lruEntry)
-	if time.Now().After(entry.expire) {
+	// if time.Now().After(entry.expire) {
+	if restutils.CoarseTimestamp() > float64(entry.expire.UnixMilli())/1000 {
+		// 过期
 		return false, nil
 	}
 
@@ -80,7 +83,9 @@ func (lru *LRUCache) MGet(ctx context.Context, keys []string, destSlicePtr inter
 		}
 
 		entry := value.(*lruEntry)
-		if time.Now().After(entry.expire) {
+		// if time.Now().After(entry.expire) {
+		if restutils.CoarseTimestamp() > float64(entry.expire.UnixMilli())/1000 {
+			// 过期
 			missIndexes = append(missIndexes, index)
 			continue
 		}
