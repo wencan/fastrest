@@ -18,7 +18,7 @@ func init() {
 	}()
 }
 
-// CoarseTimestamp 当前时间戳。精确到0.1秒。
+// CoarseTimestamp 当前时间戳。单位秒。精确到0.1秒。
 func CoarseTimestamp() float64 {
 	s := atomic.LoadInt64(&now)
 	if s == 0 {
