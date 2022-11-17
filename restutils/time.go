@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// now 当前时间戳，精确到Millisecond。
+// now 当前时间戳，精确到0.1s。
 var now int64
 
 func init() {
