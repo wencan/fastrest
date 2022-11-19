@@ -127,7 +127,7 @@ func NewHandler(handler HandlerFunc) http.HandlerFunc {
 	return DefaultHandlerFactory.NewHandler(handler)
 }
 
-// NewHandlerFunc 基于DefaultHandlerFactory的NewHandler + NewHandlerFunc的快速方法。。
+// NewReflectHandler 基于DefaultHandlerFactory的NewHandler + NewHandlerFunc的快速方法。。
 func NewReflectHandler(f interface{}) http.HandlerFunc {
 	return DefaultHandlerFactory.NewReflectHandler(f)
 }
