@@ -8,6 +8,9 @@ import (
 	"github.com/wencan/fastrest/restcodecs/restmime"
 )
 
+// WriteResponseFunc 输出响应的函数的签名。
+type WriteResponseFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, response interface{}, err error) error
+
 // WriteResponse 将响应体写出。
 // response将被转为响应实体。
 // 响应Content-Type根据请求的Accept推导。

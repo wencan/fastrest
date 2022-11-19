@@ -137,8 +137,7 @@ func TestNewHandlerFunc(t *testing.T) {
 	}
 
 	type args struct {
-		f               interface{}
-		readRequestFunc ReadRequestFunc
+		f interface{}
 
 		method string
 		url    string
@@ -235,7 +234,7 @@ func TestNewHandlerFunc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hander := NewHandler(NewHandlerFunc(tt.args.f, tt.args.readRequestFunc))
+			hander := NewReflectHandler(tt.args.f)
 			s := httptest.NewServer(hander)
 			defer s.Close()
 
