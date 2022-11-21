@@ -47,9 +47,15 @@ func formUnmarshaler(dest interface{}, reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	err = restvalues.Decoder.Decode(dest, values)
-	if err != nil {
-		return err
+
+	destValues, _ := dest.(*url.Values)
+	if destValues != nil {
+		*destValues = values
+	} else {
+		err = restvalues.Decoder.Decode(dest, values)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

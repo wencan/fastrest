@@ -3,6 +3,7 @@ package restmime
 import (
 	"bytes"
 	"io"
+	"net/url"
 	"testing"
 
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
@@ -57,6 +58,16 @@ func TestUnmarshal(t *testing.T) {
 				Greeting: "hi",
 				Name:     "Tom",
 			},
+			wantErr: false,
+		},
+		{
+			name: "url_values",
+			args: args{
+				dest:        &url.Values{},
+				contentType: "application/x-www-form-urlencoded",
+				reader:      bytes.NewBufferString(`greeting=hi&name=Tom`),
+			},
+			want:    &url.Values{"greeting": []string{"hi"}, "name": []string{"Tom"}},
 			wantErr: false,
 		},
 		{

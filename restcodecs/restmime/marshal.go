@@ -49,12 +49,15 @@ func jsonMarshaler(v interface{}, writer io.Writer) error {
 }
 
 func formMarshaler(v interface{}, writer io.Writer) error {
-	values := url.Values{}
-	err := restvalues.Encoder.Encode(v, values)
-	if err != nil {
-		return err
+	values, _ := v.(url.Values)
+	if values == nil {
+		values = url.Values{}
+		err := restvalues.Encoder.Encode(v, values)
+		if err != nil {
+			return err
+		}
 	}
-	_, err = writer.Write([]byte(values.Encode()))
+	_, err := writer.Write([]byte(values.Encode()))
 	if err != nil {
 		return err
 	}
