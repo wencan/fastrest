@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/url"
 	"strings"
 
 	"github.com/wencan/fastrest/restcodecs/restjson"
@@ -49,15 +48,11 @@ func jsonMarshaler(v interface{}, writer io.Writer) error {
 }
 
 func formMarshaler(v interface{}, writer io.Writer) error {
-	values, _ := v.(url.Values)
-	if values == nil {
-		values = url.Values{}
-		err := restvalues.Encoder.Encode(v, values)
-		if err != nil {
-			return err
-		}
+	str, err := restvalues.Encode(v)
+	if err != nil {
+		return err
 	}
-	_, err := writer.Write([]byte(values.Encode()))
+	_, err = writer.Write([]byte(str))
 	if err != nil {
 		return err
 	}
