@@ -42,6 +42,25 @@ func TestUnmarshal(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "json_withArguments",
+			args: args{
+				dest: &struct {
+					Greeting string `json:"greeting"`
+					Name     string `json:"name"`
+				}{},
+				contentType: "application/json; charset=utf-8",
+				reader:      bytes.NewBufferString(`{"greeting":"hi","name":"Tom"}`),
+			},
+			want: &struct {
+				Greeting string `json:"greeting"`
+				Name     string `json:"name"`
+			}{
+				Greeting: "hi",
+				Name:     "Tom",
+			},
+			wantErr: false,
+		},
+		{
 			name: "form",
 			args: args{
 				dest: &struct {
