@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"mime"
-	"net/url"
 
 	"github.com/wencan/fastrest/restcodecs/restjson"
 	"github.com/wencan/fastrest/restcodecs/restvalues"
@@ -43,21 +42,7 @@ func formUnmarshaler(dest interface{}, reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	values, err := url.ParseQuery(string(data))
-	if err != nil {
-		return err
-	}
-
-	destValues, _ := dest.(*url.Values)
-	if destValues != nil {
-		*destValues = values
-	} else {
-		err = restvalues.Decoder.Decode(dest, values)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return restvalues.Decode(dest, string(data))
 }
 
 func protobufUnmarshaler(dest interface{}, reader io.Reader) error {
