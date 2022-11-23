@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"google.golang.org/protobuf/proto"
 )
@@ -107,8 +108,19 @@ func TestUnmarshal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Unmarshal(tt.args.dest, tt.args.contentType, tt.args.reader); (err != nil) != tt.wantErr {
-				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+			err := Unmarshal(tt.args.dest, tt.args.contentType, tt.args.reader)
+			if tt.wantErr {
+				assert.NotNil(t, err)
+			} else {
+				if assert.Nil(t, err, err) {
+					wantMessage, _ := tt.want.(proto.Message)
+					haveMessage, _ := tt.args.dest.(proto.Message)
+					if wantMessage != nil && haveMessage != nil {
+						assert.True(t, proto.Equal(wantMessage, haveMessage))
+					} else {
+						assert.Equal(t, tt.want, tt.args.dest)
+					}
+				}
 			}
 		})
 	}
