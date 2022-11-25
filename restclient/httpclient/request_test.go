@@ -1,6 +1,7 @@
 package httpclient
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -228,6 +229,57 @@ func TestNewRequestWithBody(t *testing.T) {
 					})
 					return data
 				}(),
+			},
+		},
+		{
+			name: "post_ioReader",
+			args: args{
+				method:      http.MethodPost,
+				url:         "/123/abc/json",
+				contentType: restmime.MimeTypeJson,
+				bodyObj:     bytes.NewBufferString("{\"greeting\":\"hi\",\"name\":\"Tom\"}\n"),
+			},
+			want: want{
+				method: http.MethodPost,
+				url:    "/123/abc/json",
+				header: http.Header{
+					"Content-Type": []string{restmime.MimeTypeJson},
+				},
+				body: []byte("{\"greeting\":\"hi\",\"name\":\"Tom\"}\n"),
+			},
+		},
+		{
+			name: "post_bytes",
+			args: args{
+				method:      http.MethodPost,
+				url:         "/123/abc/json",
+				contentType: restmime.MimeTypeJson,
+				bodyObj:     []byte("{\"greeting\":\"hi\",\"name\":\"Tom\"}\n"),
+			},
+			want: want{
+				method: http.MethodPost,
+				url:    "/123/abc/json",
+				header: http.Header{
+					"Content-Type": []string{restmime.MimeTypeJson},
+				},
+				body: []byte("{\"greeting\":\"hi\",\"name\":\"Tom\"}\n"),
+			},
+		},
+		{
+			name: "post_str",
+			args: args{
+				method:      http.MethodPost,
+				url:         "/123/abc/json",
+				contentType: restmime.MimeTypeJson,
+				bodyObj:     "{\"greeting\":\"hi\",\"name\":\"Tom\"}\n",
+			},
+			want: want{
+				method: http.MethodPost,
+				url:    "/123/abc/json",
+				header: http.Header{
+					"Content-Type": []string{restmime.MimeTypeJson},
+				},
+				body: []byte("{\"greeting\":\"hi\",\"name\":\"Tom\"}\n"),
 			},
 		},
 	}

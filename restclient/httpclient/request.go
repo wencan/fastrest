@@ -58,8 +58,14 @@ func NewRequestWithBody(ctx context.Context, method, url, contentType string, bo
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
 		var body io.Reader
 		if bodyObj != nil {
-			body, _ = bodyObj.(io.Reader)
-			if body == nil {
+			switch t := bodyObj.(type) {
+			case io.Reader:
+				body = t
+			case string:
+				body = bytes.NewBufferString(t)
+			case []byte:
+				body = bytes.NewBuffer(t)
+			default:
 				var buffer bytes.Buffer
 				err := restmime.Marshal(bodyObj, contentType, &buffer)
 				if err != nil {
