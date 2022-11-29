@@ -25,6 +25,9 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
         <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restserver/httpserver/stdmiddlewares">restserver/httpserver/stdmiddlewares</a></td><td></td><td>http中间件</td><td>一个http的缓存中间件，支持简单的常见的缓存控制策略</td>
     </tr>
     <tr>
+        <td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restclient/httpclient">restclient/httpclient</a></td><td></td><td>http客户端组件</td><td>一套http客户端的辅助组件</td>
+    </tr>
+    <tr>
         <td rowspan="2">restcache</td><td><a href="https://pkg.go.dev/github.com/wencan/fastrest/restcache#Caching">Caching</a></td><td>单个数据的缓存中间件</td><td rowspan="2">缓存流程的胶水逻辑。<br>基于<a href="https://pkg.go.dev/github.com/wencan/gox/xsync/sentinel#SentinelGroup">SentinelGroup</a>解决缓存实效风暴问题。<br>简单介绍见<a href="https://blog.wencan.org/2022/10/17/restcache/">这里</a>。</td>
     </tr>
     <tr>
@@ -106,6 +109,36 @@ var handler http.HandlerFunc = cacheMiddleware(func(w http.ResponseWriter, r *ht
     // ... ...
 })
 ```
+
+### restclient/httpclient: 客户端Get请求
+```go
+	type Request struct {
+		Greeting string `schema:"greeting"`
+	}
+	type Response struct {
+		Echo string `json:"echo"`
+	}
+
+	request := Request{Greeting: "Hi"}
+	response := Response{}
+	_ = Get(context.TODO(), &response, s.URL+"/path", request)
+```
+
+
+### restclient/httpclient: 客户端PostJson请求
+```go
+	type Request struct {
+		Greeting string `json:"greeting"`
+	}
+	type Response struct {
+		Echo string `json:"echo"`
+	}
+
+	request := Request{Greeting: "Hi"}
+	response := Response{}
+	_ = PostJson(context.TODO(), &response, s.URL+"/path", request)
+```
+
 
 ### restcache: 单个数据的缓存
 ```go

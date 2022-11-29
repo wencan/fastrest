@@ -35,9 +35,10 @@ func UrlAddQuery(uri string, query interface{}) (string, error) {
 	return u.String(), nil
 }
 
-// NewRequestWithQuery 创建一个带查询字符串的http.Request。
-// query可以为nil、url.Values，带schema标签的结构体。
-func NewRequestWithQuery(ctx context.Context, method, url string, query interface{}) (*http.Request, error) {
+// NewRequestFunc 构建*http.Request的函数。默认为：http.NewRequestWithContext。
+type NewRequestFunc func(ctx context.Context, method, url string, body io.Reader) (*http.Request, error)
+
+func newRequestWithQuery(ctx context.Context, method, url string, query interface{}, newRequestFunc NewRequestFunc) (*http.Request, error) {
 	method = strings.ToUpper(method)
 	switch method {
 	case http.MethodGet, http.MethodHead:
@@ -45,14 +46,19 @@ func NewRequestWithQuery(ctx context.Context, method, url string, query interfac
 		if err != nil {
 			return nil, err
 		}
-		return http.NewRequestWithContext(ctx, method, url, nil)
+		return newRequestFunc(ctx, method, url, nil)
 	default:
 		return nil, fmt.Errorf("unsupported method \"%s\"", method)
 	}
 }
 
-// NewRequestWithBody 创建一个带Body的http.Request。
-func NewRequestWithBody(ctx context.Context, method, url, contentType string, bodyObj interface{}) (*http.Request, error) {
+// NewRequestWithQuery 创建一个带查询字符串的http.Request。
+// query可以为nil、url.Values，带schema标签的结构体。
+func NewRequestWithQuery(ctx context.Context, method, url string, query interface{}) (*http.Request, error) {
+	return newRequestWithQuery(ctx, method, url, query, http.NewRequestWithContext)
+}
+
+func newRequestWithBody(ctx context.Context, method, url, contentType string, bodyObj interface{}, newRequestFunc NewRequestFunc) (*http.Request, error) {
 	method = strings.ToUpper(method)
 	switch method {
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
@@ -75,7 +81,7 @@ func NewRequestWithBody(ctx context.Context, method, url, contentType string, bo
 			}
 		}
 
-		r, err := http.NewRequestWithContext(ctx, method, url, body)
+		r, err := newRequestFunc(ctx, method, url, body)
 		if err != nil {
 			return nil, err
 		}
@@ -84,4 +90,9 @@ func NewRequestWithBody(ctx context.Context, method, url, contentType string, bo
 	default:
 		return nil, fmt.Errorf("unsupported method \"%s\"", method)
 	}
+}
+
+// NewRequestWithBody 创建一个带Body的http.Request。
+func NewRequestWithBody(ctx context.Context, method, url, contentType string, bodyObj interface{}) (*http.Request, error) {
+	return newRequestWithBody(ctx, method, url, contentType, bodyObj, http.NewRequestWithContext)
 }
