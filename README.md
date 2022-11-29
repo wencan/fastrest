@@ -112,31 +112,31 @@ var handler http.HandlerFunc = cacheMiddleware(func(w http.ResponseWriter, r *ht
 
 ### restclient/httpclient: 客户端Get请求
 ```go
-	type Request struct {
-		Greeting string `schema:"greeting"`
-	}
-	type Response struct {
-		Echo string `json:"echo"`
-	}
+type Request struct {
+    Greeting string `schema:"greeting"`
+}
+type Response struct {
+    Echo string `json:"echo"`
+}
 
-	request := Request{Greeting: "Hi"}
-	response := Response{}
-	_ = Get(context.TODO(), &response, s.URL+"/path", request)
+request := Request{Greeting: "Hi"}
+response := Response{}
+_ = Get(context.TODO(), &response, s.URL+"/path", request)
 ```
 
 
 ### restclient/httpclient: 客户端PostJson请求
 ```go
-	type Request struct {
-		Greeting string `json:"greeting"`
-	}
-	type Response struct {
-		Echo string `json:"echo"`
-	}
+type Request struct {
+    Greeting string `json:"greeting"`
+}
+type Response struct {
+    Echo string `json:"echo"`
+}
 
-	request := Request{Greeting: "Hi"}
-	response := Response{}
-	_ = PostJson(context.TODO(), &response, s.URL+"/path", request)
+request := Request{Greeting: "Hi"}
+response := Response{}
+_ = PostJson(context.TODO(), &response, s.URL+"/path", request)
 ```
 
 
