@@ -50,6 +50,12 @@ var (
 		GRpcCode:       codes.NotFound,
 	}
 
+	// StatusAlreadyExists 已经存在，冲突。
+	StatusAlreadyExists Status = builtInStatus{
+		HttpStatusCode: http.StatusConflict,
+		GRpcCode:       codes.AlreadyExists,
+	}
+
 	// StatusPermissionDenied 拒绝访问。
 	StatusPermissionDenied Status = builtInStatus{
 		HttpStatusCode: http.StatusForbidden,

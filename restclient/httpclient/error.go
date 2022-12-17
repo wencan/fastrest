@@ -11,6 +11,7 @@ var statusCode2ErrorStatusMap = map[int]resterror.Status{
 	http.StatusOK:                  resterror.StatusOk,
 	http.StatusBadRequest:          resterror.StatusInvalidArgument,
 	http.StatusNotFound:            resterror.StatusNotFound,
+	http.StatusConflict:            resterror.StatusAlreadyExists,
 	http.StatusForbidden:           resterror.StatusPermissionDenied,
 	http.StatusPreconditionFailed:  resterror.StatusFailedPrecondition,
 	http.StatusNotImplemented:      resterror.StatusUnimplemented,
