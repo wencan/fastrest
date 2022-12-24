@@ -16,6 +16,11 @@ var RequestErrorWrapper = func(ctx context.Context, err error) error {
 	return resterror.ErrorWithStatus(err, resterror.StatusInvalidArgument)
 }
 
+// ValidateErrorWrapper 请求校验错误包装。可以用来包装或覆盖请求错误。
+var ValidateErrorWrapper = func(ctx context.Context, err error) error {
+	return resterror.ErrorWithStatus(err, resterror.StatusInvalidArgument)
+}
+
 // ReadRequestFunc 解析请求的函数的签名。
 type ReadRequestFunc func(ctx context.Context, dest interface{}, r *http.Request) error
 
@@ -53,7 +58,7 @@ func ReadValidateRequest(ctx context.Context, dest interface{}, r *http.Request)
 
 	err = restutils.ValidateStruct(ctx, dest)
 	if err != nil {
-		return RequestErrorWrapper(ctx, err)
+		return ValidateErrorWrapper(ctx, err)
 	}
 	return nil
 }
