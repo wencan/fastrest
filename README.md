@@ -66,7 +66,7 @@ var handler http.HandlerFunc = NewHandler(GenericsHandling[Request, Response](fu
     // do things
 
     // output json body
-    return Response{
+    return &Response{
         Echo: req.Greeting,
     }, nil
 }))
