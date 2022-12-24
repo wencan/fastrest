@@ -61,6 +61,9 @@ func ExampleNewHandler_withMiddleware() {
 
 	middleware := ChainHandlerMiddlewares(func(next HandleFunc) HandleFunc {
 		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			r := RequestFromContext(ctx)
+			fmt.Println(r.RequestURI)
+
 			response, err = next(ctx, request)
 			if err != nil {
 				return nil, err
@@ -105,5 +108,6 @@ func ExampleNewHandler_withMiddleware() {
 
 	fmt.Println(string(data))
 
-	// Output: {"data":{"echo":"hello"}}
+	// Output: /echo?greeting=hello
+	// {"data":{"echo":"hello"}}
 }
