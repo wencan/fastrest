@@ -8,6 +8,9 @@ import (
 	"github.com/wencan/fastrest/restcodecs/restmime"
 )
 
+// DefaultAccept 请求Header Accept的缺省值。
+var DefaultAccept = "*/*"
+
 // WriteResponseFunc 输出响应的函数的签名。
 type WriteResponseFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, response interface{}, err error) error
 
@@ -32,7 +35,7 @@ func WriteResponse(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 
 	accept := r.Header.Get("Accept")
 	if accept == "" {
-		accept = "*/*"
+		accept = DefaultAccept
 	}
 	// 根据Accept要求，找出返回的content type。
 	contentType := restmime.AcceptableMarshalContentType(accept)

@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package httpserver
 
 import (
@@ -8,17 +11,22 @@ import (
 )
 
 func ExampleServer() {
+	type Request struct {
+		Greeting string `schema:"greeting" validate:"required"`
+	}
+	type Response struct {
+		Echo string `json:"echo"`
+	}
+
 	ctx := context.Background()
 
 	s := NewServer(ctx, &http.Server{
 		Addr: "127.0.0.1:28080",
-		Handler: http.HandlerFunc(NewHandler(func(r *http.Request) (response interface{}, err error) {
-			return struct {
-				Echo string `json:"echo"`
-			}{
-				Echo: "Hello",
+		Handler: http.HandlerFunc(NewHandler(GenericsHandling[Request, Response](func(ctx context.Context, req *Request) (*Response, error) {
+			return &Response{
+				Echo: req.Greeting,
 			}, nil
-		})),
+		}))),
 	})
 	addr, err := s.Start(ctx) //  启动监听，开始服务。直至收到SIGTERM、SIGINT信号，或Stop被调用。
 	if err != nil {
@@ -27,7 +35,7 @@ func ExampleServer() {
 	}
 	fmt.Println("Listen running at:", addr)
 
-	resp, err := http.Get("http://" + addr + "/echo")
+	resp, err := http.Get("http://" + addr + "/echo?greeting=Hello")
 	if err != nil {
 		fmt.Println(err)
 		return

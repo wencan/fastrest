@@ -11,7 +11,7 @@ Restful服务公共组件库，目的为帮忙快速开发服务程序，尽可�
 ## fastrest与常说的“框架”的区别
 * fastrest是一些辅助性质的函数/结构的集合。
 * fastrest不造重复的轮子。
-* fastrest力求足够的开放。
+* fastrest力求足够的简单、开放。
 
 ## 目录  
 <table>
@@ -62,40 +62,14 @@ type Response struct {
     Echo string `json:"echo"`
 }
 
-var handler http.HandlerFunc = NewHandler(func(r *http.Request) (response interface{}, err error) {
-    var req Request
-    // parse and validate query
-    err = ReadValidateRequest(r.Context(), &req, r)
-    if err != nil {
-        return nil, err
-    }
-
+var handler http.HandlerFunc = NewHandler(GenericsHandling[Request, Response](func(ctx context.Context, req *Request) (*Response, error) {
     // do things
 
     // output json body
     return Response{
         Echo: req.Greeting,
     }, nil
-})
-```
-
-或者：
-```go
-type Request struct {
-    Greeting string `schema:"greeting" json:"greeting" validate:"required"`
-}
-type Response struct {
-    Echo string `json:"echo"`
-}
-
-// NewHandler + NewHandlerFunc 可以将一个gRPC服务方法，转为http.HandlerFunc。
-var handler http.HandlerFunc = NewHandler(NewHandlerFunc(func(ctx context.Context, req *Request) (resp *Response, err error) {
-    // do things
-
-    return &Response{
-        Echo: req.Greeting,
-    }, nil
-}, ReadValidateRequest))
+}))
 ```
 
 ### fastrest/restserver/httpserver/stdmiddlewares：HTTP缓存中间件
