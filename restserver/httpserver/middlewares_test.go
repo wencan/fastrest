@@ -1,22 +1,21 @@
 package httpserver
 
 import (
-	"net/http"
-	"net/http/httptest"
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 )
 
 func TestChainHandlerMiddlewares(t *testing.T) {
-	var tags []string
 
-	makeMiddleware := func(name string) func(next HandlerFunc) HandlerFunc {
-		return func(next HandlerFunc) HandlerFunc {
-			return func(r *http.Request) (response interface{}, err error) {
-				tags = append(tags, name+" start")
-				response, err = next(r)
-				tags = append(tags, name+" end")
+	makeMiddleware := func(name string) func(next HandleFunc) HandleFunc {
+		return func(next HandleFunc) HandleFunc {
+			return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+				tags := request.(*[]string)
+				*tags = append(*tags, name+" start")
+				response, err = next(ctx, request)
+				*tags = append(*tags, name+" end")
 				return response, err
 			}
 		}
@@ -25,13 +24,15 @@ func TestChainHandlerMiddlewares(t *testing.T) {
 	middleware2 := makeMiddleware("middleware2")
 	middleware3 := makeMiddleware("middleware3")
 
-	handler := func(r *http.Request) (response interface{}, err error) {
-		tags = append(tags, "work")
+	handler := func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		tags := request.(*[]string)
+		*tags = append(*tags, "work")
 		return struct{}{}, nil
 	}
 
 	chain := ChainHandlerMiddlewares(middleware1, middleware2, middleware3)
-	chain(handler)(httptest.NewRequest(http.MethodGet, "/", nil))
+	var tags []string
+	chain(handler)(context.TODO(), &tags)
 
 	wantTags := []string{"middleware1 start", "middleware2 start", "middleware3 start", "work", "middleware3 end", "middleware2 end", "middleware1 end"}
 	if !reflect.DeepEqual(tags, wantTags) {
@@ -41,7 +42,7 @@ func TestChainHandlerMiddlewares(t *testing.T) {
 
 func TestRecoveryMiddleware(t *testing.T) {
 	type args struct {
-		handler HandlerFunc
+		handle HandleFunc
 	}
 	tests := []struct {
 		name      string
@@ -51,7 +52,7 @@ func TestRecoveryMiddleware(t *testing.T) {
 		{
 			name: "panic",
 			args: args{
-				handler: func(r *http.Request) (response interface{}, err error) {
+				handle: func(ctx context.Context, request interface{}) (response interface{}, err error) {
 					panic("test")
 				},
 			},
@@ -60,8 +61,8 @@ func TestRecoveryMiddleware(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			handler := RecoveryMiddleware(tt.args.handler)
-			_, err := handler(httptest.NewRequest(http.MethodGet, "/test", nil))
+			handle := RecoveryMiddleware(tt.args.handle)
+			_, err := handle(context.TODO(), nil)
 			var gotError string
 			if err != nil {
 				gotError = err.Error()
