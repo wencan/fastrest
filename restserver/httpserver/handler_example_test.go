@@ -24,7 +24,7 @@ func ExampleNewHandler() {
 			Echo: req.Greeting,
 		}, nil
 	}
-	var handler http.HandlerFunc = NewHandler(GenericsHandling[Request, Response](f))
+	var handler http.HandlerFunc = NewGenericsHandler(f)
 
 	s := httptest.NewServer(handler)
 	defer s.Close()

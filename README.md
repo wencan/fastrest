@@ -62,7 +62,7 @@ type Response struct {
     Echo string `json:"echo"`
 }
 
-var handler http.HandlerFunc = NewHandler(GenericsHandling[Request, Response](func(ctx context.Context, req *Request) (*Response, error) {
+var handler http.HandlerFunc = NewGenericsHandler((func(ctx context.Context, req *Request) (*Response, error) {
     // do things
 
     // output json body

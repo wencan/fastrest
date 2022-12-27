@@ -3,7 +3,10 @@
 
 package httpserver
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 // GenericsHandling 基于范型，将一个处理逻辑函数，转为Handling接口实现。
 type GenericsHandling[REQUEST, RESPONSE any] func(ctx context.Context, request *REQUEST) (response *RESPONSE, err error)
@@ -21,4 +24,9 @@ func (handling GenericsHandling[REQUEST, RESPONSE]) Handle(ctx context.Context, 
 		resp = response
 	}
 	return resp, err
+}
+
+// NewGenericsHandler 基于DefaultHandlerFactory和范型，创建一个http.Handler。
+func NewGenericsHandler[REQUEST, RESPONSE any](f func(ctx context.Context, request *REQUEST) (response *RESPONSE, err error)) http.HandlerFunc {
+	return NewHandler(GenericsHandling[REQUEST, RESPONSE](f))
 }
