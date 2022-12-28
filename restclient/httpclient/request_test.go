@@ -100,7 +100,7 @@ func TestNewRequestWithQuery(t *testing.T) {
 			}))
 			defer s.Close()
 
-			r, err := NewRequestWithQuery(context.TODO(), tt.args.method, s.URL+tt.args.url, tt.args.query)
+			r, err := DefaultClient.NewRequestWithQuery(context.TODO(), tt.args.method, s.URL+tt.args.url, tt.args.query)
 			if tt.wantErr {
 				assert.NotNil(t, err)
 				return

@@ -52,12 +52,6 @@ func newRequestWithQuery(ctx context.Context, method, url string, query interfac
 	}
 }
 
-// NewRequestWithQuery 创建一个带查询字符串的http.Request。
-// query可以为nil、url.Values，带schema标签的结构体。
-func NewRequestWithQuery(ctx context.Context, method, url string, query interface{}) (*http.Request, error) {
-	return newRequestWithQuery(ctx, method, url, query, http.NewRequestWithContext)
-}
-
 func newRequestWithBody(ctx context.Context, method, url, contentType string, bodyObj interface{}, newRequestFunc NewRequestFunc) (*http.Request, error) {
 	method = strings.ToUpper(method)
 	switch method {
