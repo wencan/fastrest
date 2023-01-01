@@ -13,7 +13,7 @@ var DefaultClient = Client{
 	DefaultAccept:    "*/*",
 	DoFunc:           http.DefaultClient.Do,
 	ReadResponseFunc: ReadResponse,
-	UserAgent:        "fastrest-http-client/1.1",
+	DefaultUserAgent: "fastrest-http-client/1.1",
 }
 
 // Client 带配置的客户端。
@@ -30,13 +30,15 @@ type Client struct {
 	// ReadResponseFunc 解析响应的函数。默认为：ReadResponseBody
 	ReadResponseFunc ReadResponseFunc
 
-	// UserAgent 请求Header的User-Agent值。默认fastrest-http-client/1.1。
-	UserAgent string
+	// DefaultUserAgent 请求Header的默认User-Agent值。默认fastrest-http-client/1.1。
+	DefaultUserAgent string
 }
 
 // Do 发送请求，解析响应到对象。
 func (client Client) Do(ctx context.Context, dest interface{}, r *http.Request) error {
-	r.Header.Set("User-Agent", client.UserAgent)
+	if client.DefaultUserAgent != "" && r.Header.Get("User-Agent") == "" {
+		r.Header.Set("User-Agent", client.DefaultUserAgent)
+	}
 	if client.DefaultAccept != "" && r.Header.Get("Accept") == "" {
 		r.Header.Set("Accept", client.DefaultAccept)
 	}
