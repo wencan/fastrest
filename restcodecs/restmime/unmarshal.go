@@ -17,9 +17,9 @@ type UnmarshalerFunc func(dest interface{}, reader io.Reader) error
 var unmarshalerMap = map[string]UnmarshalerFunc{}
 
 func init() {
-	RegisterUnmarshaler(string(MimeTypeJson), jsonUnmarshaler)
-	RegisterUnmarshaler(string(MimeTypeForm), formUnmarshaler)
-	RegisterUnmarshaler(string(MimeTypeProtobuf), protobufUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeJson), JsonUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeForm), FormUnmarshaler)
+	RegisterUnmarshaler(string(MimeTypeProtobuf), ProtobufUnmarshaler)
 }
 
 // RegisterUnmarshaler 注册Mime数据反序列化函数。
@@ -27,7 +27,8 @@ func RegisterUnmarshaler(name string, unmarshaler UnmarshalerFunc) {
 	unmarshalerMap[name] = unmarshaler
 }
 
-func jsonUnmarshaler(dest interface{}, reader io.Reader) error {
+// JsonUnmarshaler 反序列化json。
+func JsonUnmarshaler(dest interface{}, reader io.Reader) error {
 	decoder := restjson.NewDecoder(reader)
 	err := decoder.Decode(dest)
 	if err != nil {
@@ -36,8 +37,8 @@ func jsonUnmarshaler(dest interface{}, reader io.Reader) error {
 	return nil
 }
 
-// formUnmarshaler 使用github.com/gorilla/schema反序列化数据。需要dest字段带schema标签。
-func formUnmarshaler(dest interface{}, reader io.Reader) error {
+// FormUnmarshaler 反序列化查询/表单。需要dest字段带schema标签。
+func FormUnmarshaler(dest interface{}, reader io.Reader) error {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return err
@@ -45,7 +46,8 @@ func formUnmarshaler(dest interface{}, reader io.Reader) error {
 	return restvalues.Decode(dest, string(data))
 }
 
-func protobufUnmarshaler(dest interface{}, reader io.Reader) error {
+// ProtobufUnmarshaler 反序列化Protocol Buffers消息。
+func ProtobufUnmarshaler(dest interface{}, reader io.Reader) error {
 	data, err := io.ReadAll(reader)
 	if err != nil {
 		return err

@@ -24,9 +24,9 @@ type registeredMarshaler struct {
 var registeredMarshalers = make([]*registeredMarshaler, 0)
 
 func init() {
-	RegisterMarshaler(string(MimeTypeJson), jsonMarshaler)
-	RegisterMarshaler(string(MimeTypeForm), formMarshaler)
-	RegisterMarshaler(string(MimeTypeProtobuf), protobufMarshler)
+	RegisterMarshaler(string(MimeTypeJson), JsonMarshaler)
+	RegisterMarshaler(string(MimeTypeForm), FormMarshaler)
+	RegisterMarshaler(string(MimeTypeProtobuf), ProtobufMarshler)
 }
 
 // RegisterMarshaler 注册mime数据序列化函数。
@@ -38,7 +38,8 @@ func RegisterMarshaler(name string, marshaler MarshalerFunc) {
 	})
 }
 
-func jsonMarshaler(v interface{}, writer io.Writer) error {
+// JsonMarshaler 序列化json。
+func JsonMarshaler(v interface{}, writer io.Writer) error {
 	encoder := restjson.NewEncoder(writer)
 	err := encoder.Encode(v)
 	if err != nil {
@@ -47,7 +48,8 @@ func jsonMarshaler(v interface{}, writer io.Writer) error {
 	return nil
 }
 
-func formMarshaler(v interface{}, writer io.Writer) error {
+// FormMarshaler 序列化查询/表单。v为url.Values或者结构体字段带schema标签。
+func FormMarshaler(v interface{}, writer io.Writer) error {
 	str, err := restvalues.Encode(v)
 	if err != nil {
 		return err
@@ -59,7 +61,8 @@ func formMarshaler(v interface{}, writer io.Writer) error {
 	return nil
 }
 
-func protobufMarshler(v interface{}, writer io.Writer) error {
+// ProtobufMarshler 序列化Protocol Buffers消息。
+func ProtobufMarshler(v interface{}, writer io.Writer) error {
 	message, ok := v.(proto.Message)
 	if !ok {
 		return errors.New("not protobuf message")
