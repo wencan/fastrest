@@ -7,6 +7,9 @@ import (
 	"github.com/wencan/fastrest/restutils"
 )
 
+var _ error = PanicError{}
+var _ error = &PanicError{}
+
 // PanicError panic错误。
 type PanicError struct {
 	// recovery Recover()的结果。
@@ -44,4 +47,23 @@ func (err PanicError) Format(s fmt.State, verb rune) {
 	default:
 		io.WriteString(s, "panic: "+fmt.Sprint(err.recovery))
 	}
+}
+
+// StackTrace 调用栈。
+func (err PanicError) StackTrace() string {
+	return err.stack.StackTrace()
+}
+
+// Recover 执行函数f。如果函数发生panic，返回一个PanicError错误；否则返回nil。
+func Recover(f func()) (panicErr *PanicError) {
+	defer func() {
+		recovery := recover()
+		if recovery != nil {
+			err := NewPanicError(recovery)
+			panicErr = &err
+		}
+	}()
+
+	f()
+	return nil
 }
