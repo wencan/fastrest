@@ -26,6 +26,14 @@ func TestSubstringsWithTags(t *testing.T) {
 			want: nil,
 		},
 		{
+			name: "nothing",
+			args: args{
+				str:      "测试这个一下",
+				startTag: "(",
+				endTag:   ")",
+			},
+		},
+		{
 			name: "one",
 			args: args{
 				str:      "测试(这个)一下",
