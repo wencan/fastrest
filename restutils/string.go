@@ -1,6 +1,7 @@
 package restutils
 
 import (
+	"context"
 	"log"
 	"strings"
 
@@ -22,4 +23,14 @@ func JsonString(v interface{}) string {
 		log.Fatalln(err)
 	}
 	return string(data)
+}
+
+// StringFromURL 从url获得字符串。支持的schema：file://、http://、https://。
+// url示例：file:///etc/fstab、。
+func StringFromURL(ctx context.Context, rawUrl string) (string, error) {
+	bytes, err := BytesFromURL(ctx, rawUrl)
+	if err != nil {
+		return "", err
+	}
+	return string(bytes), nil
 }
