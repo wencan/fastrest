@@ -25,8 +25,9 @@ func JsonString(v interface{}) string {
 	return string(data)
 }
 
-// StringFromURL 从url获得字符串。支持的schema：file://、http://、https://。
-// url示例：file:///etc/fstab、。
+// StringFromURL 从url获得字符串。
+// 支持的scheme：file://、http://、https://、data:。
+// url示例：file:///etc/fstab、data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==。
 func StringFromURL(ctx context.Context, rawUrl string) (string, error) {
 	bytes, err := BytesFromURL(ctx, rawUrl)
 	if err != nil {

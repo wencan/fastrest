@@ -57,6 +57,16 @@ We need the following so it'll parse...
 </plaintext>
 `)},
 		{
+			name:   "data_url",
+			rawUrl: "data:,Hello%2C%20World%21",
+			want:   []byte("Hello, World!"),
+		},
+		{
+			name:   "base64_data_url",
+			rawUrl: "data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==",
+			want:   []byte("Hello, World!"),
+		},
+		{
 			name:    "invalid_scheme",
 			rawUrl:  "test://123",
 			wantErr: true,

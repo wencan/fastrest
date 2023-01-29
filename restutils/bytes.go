@@ -9,8 +9,9 @@ import (
 	"os"
 )
 
-// BytesFromURL 从url获得。支持的scheme：file://、http://、https://。
-// url示例：file:///etc/fstab、。
+// BytesFromURL 从url获得数据。
+// 支持的scheme：file://、http://、https://、data:。
+// url示例：file:///etc/fstab、data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==。
 func BytesFromURL(ctx context.Context, rawUrl string) ([]byte, error) {
 	file, err := url.Parse(rawUrl)
 	if err != nil {
@@ -44,6 +45,15 @@ func BytesFromURL(ctx context.Context, rawUrl string) ([]byte, error) {
 		}
 
 		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return data, nil
+	case "data":
+		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs
+		// https://en.wikipedia.org/wiki/Data_URI_scheme
+		// 格式：data:[<mediatype>][;base64],<data>
+		_, _, data, err := ParseDataUrls(rawUrl)
 		if err != nil {
 			return nil, err
 		}
