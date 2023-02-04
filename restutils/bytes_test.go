@@ -2,12 +2,19 @@ package restutils
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
 )
 
 func TestBytesFromURL(t *testing.T) {
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("测试Body数据"))
+	}))
+	defer s.Close()
+
 	tests := []struct {
 		name    string
 		rawUrl  string
@@ -31,35 +38,19 @@ func TestBytesFromURL(t *testing.T) {
 			want: []byte("test 测试"),
 		},
 		{
-			name:   "https_page",
-			rawUrl: "https://www.w3.org/MarkUp/html-test/implementors-guide/plaintext.html",
-			want: []byte(`<title>plaintext test</title>
-
-<H1>Is plaintext supported in any way?</H1>
-
-What happens after this?
-
-On Mosaic, everything after the <code>&lt;PLAINTEXT&gt;</code>
-tag is treated like a text/plain body part -- not SGML at
-all. Nothing is recognized: not even a <code>PLAINTEXT</code>
-end tag.<p>
-
-On linemode WWW, it works just like XMP -- i.e. it's like CDATA,
-except that <code>&lt;/</code> is only recognized when follwed
-by <code>PLAINTEXT</code>.
-
-<PLAINTEXT>
-
-lkjsdflkj
-
-We need the following so it'll parse...
-
-</plaintext>
-`)},
+			name:   "http_page",
+			rawUrl: s.URL,
+			want:   []byte(`测试Body数据`),
+		},
 		{
 			name:   "data_url",
 			rawUrl: "data:,Hello%2C%20World%21",
 			want:   []byte("Hello, World!"),
+		},
+		{
+			name:   "data_url_with_parameters",
+			rawUrl: "data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678",
+			want:   []byte("the data:1234,5678"),
 		},
 		{
 			name:   "base64_data_url",
