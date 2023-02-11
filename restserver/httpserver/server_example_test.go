@@ -52,13 +52,22 @@ func ExampleServer() {
 	}
 	fmt.Println(string(data))
 
-	s.Stop(ctx)       // 结束监听
+	s.Stop(ctx) // 结束监听。实际环境应该是内部接收退出信号
+
+	<-s.ShutdownNotify()
+	fmt.Println("exiting")
+
 	err = s.Wait(ctx) // 等待处理完
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	fmt.Println("exited")
+
 	// Output: Listen running at: 127.0.0.1:28080
 	// {"echo":"Hello"}
+	//
+	// exiting
+	// exited
 }

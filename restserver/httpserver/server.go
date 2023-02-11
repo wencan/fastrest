@@ -26,13 +26,16 @@ type Server struct {
 	stopFlag chan interface{}
 
 	stopped uint32
+
+	shutdownNotify chan interface{}
 }
 
 // NewServer 创建一个新的服务。
 func NewServer(ctx context.Context, srv *http.Server) *Server {
 	s := &Server{
-		srv:      srv,
-		stopFlag: make(chan interface{}),
+		srv:            srv,
+		stopFlag:       make(chan interface{}),
+		shutdownNotify: make(chan interface{}),
 	}
 
 	next := s.srv.Handler
@@ -67,6 +70,7 @@ func (s *Server) Start(ctx context.Context) (listenAddr string, err error) {
 		case <-s.stopFlag:
 		}
 
+		close(s.shutdownNotify)
 		s.srv.Shutdown(context.Background())
 	}()
 
@@ -145,4 +149,9 @@ func (s *Server) Wait(ctx context.Context) error {
 
 		runtime.Gosched()
 	}
+}
+
+// ShutdownNotify 服务关闭通知。
+func (s *Server) ShutdownNotify() <-chan interface{} {
+	return s.shutdownNotify
 }
