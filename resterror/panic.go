@@ -54,6 +54,11 @@ func (err PanicError) StackTrace() string {
 	return err.stack.StackTrace()
 }
 
+// PanicTrace Panic调用栈。
+func (err PanicError) PanicStack() string {
+	return err.StackTrace()
+}
+
 // Recover 执行函数f。如果函数发生panic，返回一个PanicError错误；否则返回nil。
 func Recover(f func()) (panicErr *PanicError) {
 	defer func() {
