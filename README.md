@@ -49,8 +49,12 @@ s := NewServer(ctx, &http.Server{
 addr, err := s.Start(ctx) //  启动监听，开始服务。直至收到SIGTERM、SIGINT信号，或Stop被调用。
 fmt.Println("Listen running at:", addr)
 
-s.Stop(ctx)   // 结束监听
+s.Stop(ctx) // 结束监听。实际环境应该是内部接收退出信号
+
+<-s.ShutdownNotify()
+fmt.Println("Exiting...")
 err = s.Wait(ctx) // 等待处理完
+fmt.Println("Exited")
 ```
 
 ### restserver/httpserver: 创建一个HTTP Handler
