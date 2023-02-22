@@ -2,6 +2,8 @@ package httpclient
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,6 +19,27 @@ import (
 )
 
 func TestGet(t *testing.T) {
+	largeData := make([]byte, 1024)
+	_, err := rand.Read(largeData)
+	if err != nil {
+		panic(err)
+	}
+	oneK := base64.RawStdEncoding.EncodeToString(largeData)
+
+	largeData = make([]byte, 1024*10)
+	_, err = rand.Read(largeData)
+	if err != nil {
+		panic(err)
+	}
+	tenK := base64.RawStdEncoding.EncodeToString(largeData)
+
+	largeData = make([]byte, 1024*100)
+	_, err = rand.Read(largeData)
+	if err != nil {
+		panic(err)
+	}
+	hundredK := base64.RawStdEncoding.EncodeToString(largeData)
+
 	type args struct {
 		dest  interface{}
 		url   string
@@ -133,6 +156,69 @@ func TestGet(t *testing.T) {
 				},
 			},
 			want: &pb.HelloReply{Message: "王五"},
+		},
+		{
+			name: "get_1k",
+			args: args{
+				dest: &struct {
+					Data string `json:"data"`
+				}{},
+				url:   "/123/get_1k",
+				query: nil,
+				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", restmime.MimeTypeJson)
+					w.Write([]byte("{\"data\":\"" + oneK + "\"}\n"))
+				},
+			},
+			want: &struct {
+				Data string `json:"data"`
+			}{
+				Data: oneK,
+			},
+		},
+		{
+			name: "get_10k",
+			args: args{
+				dest: &struct {
+					Data string `json:"data"`
+				}{},
+				url:   "/123/get_10k",
+				query: nil,
+				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", restmime.MimeTypeJson)
+					_, err := w.Write([]byte("{\"data\":\"" + tenK + "\"}\n"))
+					if err != nil {
+						panic(err)
+					}
+				},
+			},
+			want: &struct {
+				Data string `json:"data"`
+			}{
+				Data: tenK,
+			},
+		},
+		{
+			name: "get_100k",
+			args: args{
+				dest: &struct {
+					Data string `json:"data"`
+				}{},
+				url:   "/123/get_100k",
+				query: nil,
+				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", restmime.MimeTypeJson)
+					_, err := w.Write([]byte("{\"data\":\"" + hundredK + "\"}\n"))
+					if err != nil {
+						panic(err)
+					}
+				},
+			},
+			want: &struct {
+				Data string `json:"data"`
+			}{
+				Data: hundredK,
+			},
 		},
 	}
 	for _, tt := range tests {

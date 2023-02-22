@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/wencan/fastrest/restcodecs/restmime"
+	"github.com/wencan/fastrest/restutils"
 )
 
 // ReadResponseFunc 读请求函数签名。
@@ -21,11 +22,15 @@ func ReadResponseBody(ctx context.Context, dest interface{}, response *http.Resp
 // ReadResponse 解析请求。对于非200的状态码，返回错误。解析实体。不会close Body。
 func ReadResponse(ctx context.Context, dest interface{}, response *http.Response) error {
 	if response.StatusCode != http.StatusOK {
-		return StatusCodeError(response.StatusCode, "upstream server error")
+		return StatusCodeError(response.StatusCode, "upstream server error, status code: %d", response.StatusCode)
 	}
 
 	contentLength := response.Header.Get("Content-Length")
 	if contentLength != "" && contentLength != "0" {
+		return ReadResponseBody(ctx, dest, response)
+	}
+
+	if restutils.SliceContains(response.TransferEncoding, "chunked") {
 		return ReadResponseBody(ctx, dest, response)
 	}
 
