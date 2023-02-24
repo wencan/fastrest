@@ -7,7 +7,8 @@ import (
 
 var contextKeyRequest struct{}
 
-func newContextWithRequest(ctx context.Context, r *http.Request) context.Context {
+// NewContextWithRequest 将*http.Request保存到上下文。
+func NewContextWithRequest(ctx context.Context, r *http.Request) context.Context {
 	return context.WithValue(ctx, contextKeyRequest, r)
 }
 

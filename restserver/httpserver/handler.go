@@ -44,7 +44,7 @@ func (factory HandlerFactory) NewHandler(handling Handling) http.HandlerFunc {
 			defer r.Body.Close()
 		}
 
-		ctx := newContextWithRequest(r.Context(), r)
+		ctx := NewContextWithRequest(r.Context(), r)
 		var request, response interface{}
 		var err error
 		var handle HandleFunc
