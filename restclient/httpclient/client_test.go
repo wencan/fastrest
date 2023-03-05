@@ -26,19 +26,19 @@ func TestGet(t *testing.T) {
 	}
 	oneK := base64.RawStdEncoding.EncodeToString(largeData)
 
-	largeData = make([]byte, 1024*10)
+	largeData = make([]byte, 1024*1024)
 	_, err = rand.Read(largeData)
 	if err != nil {
 		panic(err)
 	}
-	tenK := base64.RawStdEncoding.EncodeToString(largeData)
+	oneM := base64.RawStdEncoding.EncodeToString(largeData)
 
-	largeData = make([]byte, 1024*100)
+	largeData = make([]byte, 1024*1014*10)
 	_, err = rand.Read(largeData)
 	if err != nil {
 		panic(err)
 	}
-	hundredK := base64.RawStdEncoding.EncodeToString(largeData)
+	tenM := base64.RawStdEncoding.EncodeToString(largeData)
 
 	type args struct {
 		dest  interface{}
@@ -177,16 +177,16 @@ func TestGet(t *testing.T) {
 			},
 		},
 		{
-			name: "get_10k",
+			name: "get_1m",
 			args: args{
 				dest: &struct {
 					Data string `json:"data"`
 				}{},
-				url:   "/123/get_10k",
+				url:   "/123/get_1m",
 				query: nil,
 				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
 					w.Header().Add("Content-Type", restmime.MimeTypeJson)
-					_, err := w.Write([]byte("{\"data\":\"" + tenK + "\"}\n"))
+					_, err := w.Write([]byte("{\"data\":\"" + oneM + "\"}\n"))
 					if err != nil {
 						panic(err)
 					}
@@ -195,20 +195,20 @@ func TestGet(t *testing.T) {
 			want: &struct {
 				Data string `json:"data"`
 			}{
-				Data: tenK,
+				Data: oneM,
 			},
 		},
 		{
-			name: "get_100k",
+			name: "get_10m",
 			args: args{
 				dest: &struct {
 					Data string `json:"data"`
 				}{},
-				url:   "/123/get_100k",
+				url:   "/123/get_10m",
 				query: nil,
 				handlerFunc: func(w http.ResponseWriter, r *http.Request) {
 					w.Header().Add("Content-Type", restmime.MimeTypeJson)
-					_, err := w.Write([]byte("{\"data\":\"" + hundredK + "\"}\n"))
+					_, err := w.Write([]byte("{\"data\":\"" + tenM + "\"}\n"))
 					if err != nil {
 						panic(err)
 					}
@@ -217,7 +217,7 @@ func TestGet(t *testing.T) {
 			want: &struct {
 				Data string `json:"data"`
 			}{
-				Data: hundredK,
+				Data: tenM,
 			},
 		},
 	}
