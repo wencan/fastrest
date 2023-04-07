@@ -16,7 +16,7 @@ func TestValidateStruct(t *testing.T) {
 
 	type ComplexRequest struct {
 		Request Request `validate:"required"`
-		Name    string  `validate:"required"`
+		Name    string  `validate:"required,max=10"`
 	}
 
 	type ComplexSlice struct {
@@ -176,6 +176,28 @@ func TestValidateStruct(t *testing.T) {
 					},
 				},
 				Name: "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "complex_maxlimit_ok",
+			args: ComplexRequest{
+				Request: Request{
+					Page:  1,
+					Limit: 10,
+				},
+				Name: "测试测试测试测试测试",
+			},
+			wantErr: false,
+		},
+		{
+			name: "complex_maxlimit_fail",
+			args: ComplexRequest{
+				Request: Request{
+					Page:  1,
+					Limit: 10,
+				},
+				Name: "测试测试测试测试测试0",
 			},
 			wantErr: true,
 		},
