@@ -2,6 +2,8 @@ package restvalues
 
 import (
 	"net/url"
+	"reflect"
+	"time"
 
 	"github.com/gorilla/schema"
 )
@@ -11,6 +13,10 @@ var Decoder = schema.NewDecoder()
 
 func init() {
 	Decoder.IgnoreUnknownKeys(true)
+	Decoder.RegisterConverter(time.Time{}, func(s string) reflect.Value {
+		t, _ := time.Parse(time.RFC3339, s)
+		return reflect.ValueOf(t)
+	})
 }
 
 // Decode 解码表单/查询字符串。支持*url.Values和带schema标签的结构体指针。

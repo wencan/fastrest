@@ -3,6 +3,7 @@ package restvalues
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,6 +42,20 @@ func TestDecode(t *testing.T) {
 			}{
 				Greeting: "hi",
 				Name:     "Tom",
+			},
+		},
+		{
+			name: "time_field",
+			args: args{
+				dest: &struct {
+					StartTime time.Time `schema:"start_time"`
+				}{},
+				str: "start_time=2023-07-20T10%3A19%3A51Z",
+			},
+			want: &struct {
+				StartTime time.Time `schema:"start_time"`
+			}{
+				StartTime: time.Date(2023, 7, 20, 10, 19, 51, 0, time.UTC),
 			},
 		},
 	}

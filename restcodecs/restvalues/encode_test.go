@@ -3,6 +3,7 @@ package restvalues
 import (
 	"net/url"
 	"testing"
+	"time"
 )
 
 func TestEncode(t *testing.T) {
@@ -47,6 +48,17 @@ func TestEncode(t *testing.T) {
 				},
 			},
 			want: "greeting=hi&name=Tom",
+		},
+		{
+			name: "time_field",
+			args: args{
+				v: &struct {
+					StartTime time.Time `schema:"start_time"`
+				}{
+					StartTime: time.Date(2023, 7, 20, 10, 19, 51, 0, time.FixedZone("+08:00", 3600*8)),
+				},
+			},
+			want: "start_time=2023-07-20T10%3A19%3A51%2B08%3A00",
 		},
 	}
 	for _, tt := range tests {
