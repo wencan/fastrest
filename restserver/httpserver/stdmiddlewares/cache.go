@@ -28,7 +28,12 @@ var DefaultRequestCacheKeyGenerator = func(r *http.Request) string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s:%s", r.Method, r.Host, r.RequestURI)
+	if r.RequestURI != "" {
+		// 支持单元测试。如果Request不是解析得到，而是NewRequest得到，RequestURI为空。
+		return fmt.Sprintf("%s:%s:%s", r.Method, r.Host, r.RequestURI)
+	} else {
+		return fmt.Sprintf("%s:%s", r.Method, r.URL.String())
+	}
 }
 
 type cacheableResponse struct {
@@ -135,7 +140,11 @@ type handlerQueryArgs struct {
 // ttlRange 为缓存生存时间区间。
 // keyGenerator 为缓存key生成器。默认为：DefaultRequestCacheKeyGenerator。
 // 支持简单的常用的HTTP缓存控制。
-func NewCacheMiddleware(storage restcache.Storage, ttlRange [2]time.Duration, keyGenerator RequestCacheKeyGenerator) func(next http.HandlerFunc) http.HandlerFunc {
+func NewCacheMiddleware(
+	storage restcache.Storage,
+	ttlRange [2]time.Duration,
+	keyGenerator RequestCacheKeyGenerator,
+) func(next http.HandlerFunc) http.HandlerFunc {
 	if keyGenerator == nil {
 		keyGenerator = DefaultRequestCacheKeyGenerator
 	}

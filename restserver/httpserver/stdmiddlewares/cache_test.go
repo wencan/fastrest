@@ -2,15 +2,20 @@ package stdmiddlewares
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/wencan/fastrest/restcache/lrucache"
 	"github.com/wencan/fastrest/restcache/mock_restcache"
 	"github.com/wencan/fastrest/restutils"
 )
@@ -310,13 +315,23 @@ func TestNewCacheMiddleware(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockStorage := mock_restcache.NewMockStorage(ctrl)
 			if tt.args.storageGetFunc != nil {
-				mockStorage.EXPECT().Get(gomock.Any(), gomock.AssignableToTypeOf(""), gomock.Any()).DoAndReturn(tt.args.storageGetFunc).MaxTimes(1)
+				mockStorage.EXPECT().
+					Get(gomock.Any(), gomock.AssignableToTypeOf(""), gomock.Any()).
+					DoAndReturn(tt.args.storageGetFunc).
+					MaxTimes(1)
 			}
 			if tt.args.storageSetFunc != nil {
-				mockStorage.EXPECT().Set(gomock.Any(), gomock.AssignableToTypeOf(""), gomock.Any(), gomock.AssignableToTypeOf(time.Second)).DoAndReturn(tt.args.storageSetFunc).MaxTimes(1)
+				mockStorage.EXPECT().
+					Set(gomock.Any(), gomock.AssignableToTypeOf(""), gomock.Any(), gomock.AssignableToTypeOf(time.Second)).
+					DoAndReturn(tt.args.storageSetFunc).
+					MaxTimes(1)
 			}
 
-			cacheMiddleware := NewCacheMiddleware(mockStorage, [2]time.Duration{time.Hour, time.Hour * 2}, tt.args.keyGenerator)
+			cacheMiddleware := NewCacheMiddleware(
+				mockStorage,
+				[2]time.Duration{time.Hour, time.Hour * 2},
+				tt.args.keyGenerator,
+			)
 			handlerFunc := cacheMiddleware(tt.args.nextHandlerFunc)
 
 			s := httptest.NewServer(http.HandlerFunc(handlerFunc))
@@ -349,4 +364,37 @@ func TestNewCacheMiddleware(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewLRUCacheMiddleware(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	storage := lrucache.NewLRUCache(100, 10)
+	ttlRange := [2]time.Duration{time.Second, time.Second * 2}
+	middleware := NewCacheMiddleware(storage, ttlRange, nil)
+
+	next := func(w http.ResponseWriter, r *http.Request) {
+		number := r.URL.Query().Get("number")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf("echo:%s.", number)))
+	}
+	handler := middleware(next)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for j := 0; j < 10000; j++ {
+				number := rand.Intn(10000)
+				body := assert.HTTPBody(handler, http.MethodGet, "/", url.Values{
+					"number": []string{strconv.Itoa(number)},
+				})
+				assert.Equal(t, fmt.Sprintf("echo:%d.", number), body)
+			}
+		}()
+	}
+	wg.Wait()
 }
