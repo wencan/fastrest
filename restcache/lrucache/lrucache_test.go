@@ -2,6 +2,9 @@ package lrucache
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -73,4 +76,45 @@ func TestLRUCache(t *testing.T) {
 		assert.Equal(t, []int{0, 1}, missIndexed)
 		assert.Empty(t, resp6)
 	}
+}
+
+func TestLRUCache_Concurrently(t *testing.T) {
+	lruCache := NewLRUCache(1000, 10)
+
+	ctx := context.TODO()
+	for i := 0; i < 10000; i++ {
+		err := lruCache.Set(ctx, strconv.Itoa(i), i, time.Minute)
+		assert.Nil(t, err)
+	}
+
+	var wg sync.WaitGroup
+	for idx := 0; idx < 100; idx++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for j := 0; j < 10000; j++ {
+				number := rand.Intn(10000)
+				err := lruCache.Set(ctx, strconv.Itoa(number), number, time.Minute)
+				if !assert.Nil(t, err) {
+					return
+				}
+
+				number = rand.Intn(10000)
+				key := strconv.Itoa(number)
+				var got int
+				want := number
+				found, err := lruCache.Get(ctx, key, &got)
+				if !assert.Nil(t, err) {
+					return
+				}
+				if found {
+					// 可以没找到，但不能出错
+					assert.Equal(t, want, got)
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
 }

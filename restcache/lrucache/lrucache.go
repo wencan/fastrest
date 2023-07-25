@@ -31,9 +31,11 @@ type LRUCache struct {
 // NewLRUCache 创建lru缓存。chunkCapacity、chunkNum是github.com/wencan/xsync/LRUMap的区块参数。
 func NewLRUCache(chunkCapacity int, chunkNum int) *LRUCache {
 	return &LRUCache{
-		lruMap: xsync.NewLRUMapWithEvict(chunkCapacity, chunkNum, func(key, value interface{}) {
-			lruEntryPool.Put(value)
-		}),
+		// LRUMap的清理逻辑有bug。暂时不用清理
+		// lruMap: xsync.NewLRUMapWithEvict(chunkCapacity, chunkNum, func(key, value interface{}) {
+		// 	lruEntryPool.Put(value)
+		// }),
+		lruMap: xsync.NewLRUMap(chunkCapacity, chunkNum),
 	}
 }
 
