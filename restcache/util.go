@@ -16,3 +16,24 @@ func getTTL(TTLRange [2]time.Duration) time.Duration {
 
 	return ttl
 }
+
+// HitIndexes 根据未命中的索引，得到命中的索引
+func HitIndexes[T any](collection []T, missIndexes []int) []int {
+	var missPos int
+	var hitIndexes []int
+	for idx := range collection {
+		if missPos >= len(missIndexes) {
+			hitIndexes = append(hitIndexes, idx)
+			continue
+		}
+
+		if missIndexes[missPos] == idx {
+			// miss
+			missPos += 1
+		} else {
+			// hit
+			hitIndexes = append(hitIndexes, idx)
+		}
+	}
+	return hitIndexes
+}

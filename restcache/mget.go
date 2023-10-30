@@ -20,6 +20,7 @@ type MStorage interface {
 	// valueSlicePtr指向的切片的元素顺序同keys的顺序。如果keys重复，valueSlicePtr元素也必须相应重复。
 	// 如果全部没找到，或者部分没找到，返回没找到部分的下标，不返回错误。
 	// 实现逻辑应该处理掉需要忽略的错误。
+	// 可以使用HitIndexes函数，将没找到部分的下标，转为找到部分的下标。
 	MGet(ctx context.Context, keys []string, valueSlicePtr interface{}) (missIndexes []int, err error)
 
 	// MSet 批量存储数据。
@@ -55,6 +56,7 @@ type MCaching struct {
 // destSlicePtr是结果切片指针，keys是缓存key，argsSlice是查询函数的参数序列。
 // 如果全部没找到，或者部分没找到，返回没找到部分的下标，不返回错误。
 // destSlicePtr指向的切片的元素数据是共享的，内容不可修改。
+// 可以使用HitIndexes函数，将没找到部分的下标，转为找到部分的下标。
 func (mcaching *MCaching) MGet(ctx context.Context, destSlicePtr interface{}, keys []string, argsSlice interface{}) (missIndexes []int, err error) {
 	// 第一步，先查缓存
 	cacheMissIndexes, err := mcaching.MStorage.MGet(ctx, keys, destSlicePtr)
