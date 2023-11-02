@@ -2,13 +2,15 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"sync/atomic"
 	"syscall"
+
+	"github.com/wencan/gox/async"
 )
 
 // Server http.Server的包装。
@@ -19,7 +21,7 @@ type Server struct {
 
 	listener net.Listener
 
-	concurrentQuantity uint64
+	graceful *async.Graceful
 
 	serveError error
 
@@ -34,16 +36,17 @@ type Server struct {
 func NewServer(ctx context.Context, srv *http.Server) *Server {
 	s := &Server{
 		srv:            srv,
+		graceful:       async.DefaultGraceful.NewBranch("http_server_" + srv.Addr),
 		stopFlag:       make(chan interface{}),
 		shutdownNotify: make(chan interface{}),
 	}
 
 	next := s.srv.Handler
 	s.srv.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.AddUint64(&s.concurrentQuantity, 1)
-		defer atomic.AddUint64(&s.concurrentQuantity, ^uint64(0))
-
-		next.ServeHTTP(w, r)
+		// 如果要给每个路由，加上各自的graceful，应该在路由层实现
+		s.graceful.Run(func() {
+			next.ServeHTTP(w, r)
+		})
 	})
 
 	return s
@@ -58,10 +61,7 @@ func (s *Server) Start(ctx context.Context) (listenAddr string, err error) {
 		return "", err
 	}
 
-	atomic.AddUint64(&s.concurrentQuantity, 1)
-	go func() {
-		defer atomic.AddUint64(&s.concurrentQuantity, ^uint64(0))
-
+	go s.graceful.NewBranch("http_server_start_waitexit").Run(func() {
 		sigExit := make(chan os.Signal, 1)
 		signal.Notify(sigExit, os.Interrupt, syscall.SIGTERM)
 
@@ -72,18 +72,16 @@ func (s *Server) Start(ctx context.Context) (listenAddr string, err error) {
 
 		close(s.shutdownNotify)
 		s.srv.Shutdown(context.Background())
-	}()
+	})
 
-	atomic.AddUint64(&s.concurrentQuantity, 1)
-	go func() {
-		defer atomic.AddUint64(&s.concurrentQuantity, ^uint64(0))
+	go s.graceful.NewBranch("http_server_start_serve").Run(func() {
 		defer s.Stop(context.Background())
 
 		err := s.srv.Serve(s.listener)
 		if err != nil && err != http.ErrServerClosed {
 			s.serveError = err
 		}
-	}()
+	})
 
 	return s.listener.Addr().String(), nil
 }
@@ -95,10 +93,7 @@ func (s *Server) StartTLS(ctx context.Context, certFile, keyFile string) (listen
 		return "", err
 	}
 
-	atomic.AddUint64(&s.concurrentQuantity, 1)
-	go func() {
-		defer atomic.AddUint64(&s.concurrentQuantity, ^uint64(0))
-
+	go s.graceful.NewBranch("http_server_starttls_waitexit").Run(func() {
 		sigExit := make(chan os.Signal, 1)
 		signal.Notify(sigExit, os.Interrupt, syscall.SIGTERM)
 
@@ -108,18 +103,16 @@ func (s *Server) StartTLS(ctx context.Context, certFile, keyFile string) (listen
 		}
 
 		s.srv.Shutdown(context.Background())
-	}()
+	})
 
-	atomic.AddUint64(&s.concurrentQuantity, 1)
-	go func() {
-		defer atomic.AddUint64(&s.concurrentQuantity, ^uint64(0))
+	go s.graceful.NewBranch("http_server_starttls_servetls").Run(func() {
 		defer s.Stop(context.Background())
 
 		err := s.srv.ServeTLS(s.listener, certFile, keyFile)
 		if err != nil && err != http.ErrServerClosed {
 			s.serveError = err
 		}
-	}()
+	})
 
 	return s.listener.Addr().String(), nil
 }
@@ -131,24 +124,20 @@ func (s *Server) Stop(ctx context.Context) {
 	}
 }
 
-// Wait 等待服务内全部后台过程结束。
+// Wait 等待服务内全部后台过程结束。如果等待超时，返回错误包含还未退出的过程信息。
 func (s *Server) Wait(ctx context.Context) error {
-	for {
-		if s.listener == nil {
-			return nil
-		}
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-s.stopFlag:
-		}
-
-		if atomic.LoadUint64(&s.concurrentQuantity) == 0 {
-			return s.serveError
-		}
-
-		runtime.Gosched()
+	// 先等待Stop被调用
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-s.stopFlag:
 	}
+
+	err := s.graceful.Wait(ctx)
+	if err != nil {
+		return fmt.Errorf("%w. busy branches: %v", err, s.graceful.BusyBranches())
+	}
+	return nil
 }
 
 // ShutdownNotify 服务关闭通知。

@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/json-iterator/go v1.1.12
 	github.com/stretchr/testify v1.8.1
-	github.com/wencan/gox v0.0.0-20221117131701-b7e1fb5eb1c6
+	github.com/wencan/gox v0.0.0-20231102070418-35ed5bfaa935
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	google.golang.org/grpc v1.52.0
 	google.golang.org/grpc/examples v0.0.0-20221017220434-778860e606e3
