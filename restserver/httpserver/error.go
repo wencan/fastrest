@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/wencan/fastrest/resterror"
@@ -22,10 +23,8 @@ func HTTPStatusCode(err error) int {
 		return http.StatusOK
 	}
 
-	err = resterror.Unwrap(err)
-
-	statusError, _ := err.(HTTPStatusError)
-	if statusError != nil {
+	var statusError HTTPStatusError
+	if errors.As(err, &statusError) {
 		return statusError.HTTPStatusCode()
 	}
 
