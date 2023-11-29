@@ -1,6 +1,7 @@
 package resterror
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -71,4 +72,17 @@ func Recover(f func()) (panicErr *PanicError) {
 
 	f()
 	return nil
+}
+
+// AsPanic 将一个错误，转为Panic错误。如果不是Panic错误，返回Falase。
+func AsPanic(err error) (PanicError, bool) {
+	if err == nil {
+		return PanicError{}, false
+	}
+
+	var p PanicError
+	if errors.As(err, &p) {
+		return p, true
+	}
+	return PanicError{}, false
 }
