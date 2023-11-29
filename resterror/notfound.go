@@ -1,6 +1,9 @@
 package resterror
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // NotFoundError 没找到的错误接口。
 type NotFoundError interface {
@@ -13,9 +16,8 @@ func IsNotFound(err error) bool {
 	if err == nil {
 		return false
 	}
-	err = Unwrap(err)
-	nfe, _ := err.(NotFoundError)
-	return nfe != nil
+	var e notFoundError
+	return errors.As(err, &e)
 }
 
 type notFoundError struct {
